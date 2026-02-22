@@ -1,0 +1,49 @@
+[project]
+name = "threat-to-governance-pipeline"
+version = "0.1.0"
+description = "Repurposing Insider Threat Detection for AI Agent Monitoring"
+authors = [{name = "Bipin Rimal"}]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "polars>=0.20",
+    "scikit-learn>=1.3",
+    "torch>=2.0",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "datasets>=2.14",
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "pyyaml>=6.0",
+    "tqdm>=4.65",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black>=23.0", "ruff>=0.1"]
+notebooks = ["jupyter>=1.0", "ipykernel>=6.0"]
+agents = [
+    "langchain>=0.2",
+    "langchain-openai>=0.1",
+    "langgraph>=0.1",
+    "traceloop-sdk>=0.15",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 80
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.black]
+line-length = 80
+target-version = ["py310"]

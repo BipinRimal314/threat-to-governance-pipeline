@@ -1,0 +1,60 @@
+# Threat-to-Governance Pipeline: Model Configurations
+# All hyperparameters for cross-domain anomaly detection.
+
+ubfs:
+  # Unified Behavioural Feature Schema dimensions per category
+  temporal_dim: 4
+  frequency_dim: 4
+  volume_dim: 3
+  scope_dim: 3
+  sequence_dim: 3
+  deviation_dim: 2
+  privilege_dim: 1
+  # Total UBFS vector: 20 dimensions
+
+  normalization: "zscore"  # zscore | minmax | robust
+
+isolation_forest:
+  n_estimators: 200
+  max_samples: "auto"
+  contamination: "auto"
+  max_features: 1.0
+  bootstrap: false
+
+lstm_autoencoder:
+  encoder_units: [64, 32]
+  decoder_units: [32, 64]
+  latent_dim: 16
+  dropout: 0.2
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  early_stopping_patience: 15
+  sequence_length: 7
+
+deep_clustering:
+  encoder_layers: [128, 64]
+  latent_dim: 32
+  n_clusters: 5
+  dropout: 0.2
+  batch_size: 64
+  pretrain_epochs: 100
+  finetune_epochs: 50
+  learning_rate: 0.001
+  cluster_update_interval: 5
+
+ensemble:
+  method: "weighted"  # weighted | majority | cascade
+  weights:
+    isolation_forest: 0.3
+    lstm_autoencoder: 0.4
+    deep_clustering: 0.3
+  final_threshold: 0.7
+
+experiment:
+  random_seeds: [42, 43, 44, 45, 46]
+  n_seeds: 5
+  train_ratio: 0.7
+  val_ratio: 0.15
+  threshold_percentile: 95
+  device: "auto"  # auto | cpu | mps | cuda

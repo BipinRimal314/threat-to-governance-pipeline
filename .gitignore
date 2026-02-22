@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+.venv_tf/
+venv/
+
+# Data (large files)
+data/raw/
+data/processed/*.parquet
+data/processed/*.csv
+data/synthetic/*.json
+
+# Model artifacts
+models/*.pkl
+models/*.pt
+models/*.keras
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results (keep figures for README, exclude LaTeX tables)
+results/tables/*.tex
