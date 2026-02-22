@@ -76,13 +76,13 @@ The question that matters: does anomaly knowledge transfer across domains?
 
 | Direction | Model | Source AUC-ROC | Target AUC-ROC | Drop |
 |-----------|-------|:-------------:|:-------------:|:----:|
-| CERT → TRAIL | Isolation Forest | 0.731 | **0.712** | **-0.019** |
+| CERT → TRAIL | Isolation Forest | 0.731 | **0.711** | **-0.019** |
 | CERT → TRAIL | Deep Clustering | 0.688 | 0.632 | -0.056 |
 | CERT → TRACE | Isolation Forest | 0.731 | 0.501 | -0.230 |
 | TRACE → CERT | Deep Clustering | 0.496 | **0.719** | **+0.223** |
 | TRAIL → CERT | Deep Clustering | 0.897 | 0.640 | -0.257 |
 
-**The headline result: CERT → TRAIL retains 97% of detection power.** An Isolation Forest trained entirely on insider threat data (329,000 employee user-days) achieves 0.712 AUC-ROC on agent execution traces — a drop of only 0.019 from its within-domain performance. The UBFS bridge works.
+**The headline result: CERT → TRAIL retains 97% of detection power.** An Isolation Forest trained entirely on insider threat data (329,000 employee user-days) achieves 0.711 AUC-ROC on agent execution traces — a drop of only 0.019 from its within-domain performance. The UBFS bridge works.
 
 The unexpected result: **TRACE → CERT improves Deep Clustering by +0.223.** Training on 249 reward-hacking trajectories produces a richer normal baseline that outperforms within-domain DC on insider detection (0.719 vs 0.697). More training data from *any* domain helps, even across the insider/agent boundary.
 
