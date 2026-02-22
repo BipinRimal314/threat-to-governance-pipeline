@@ -51,7 +51,7 @@ Models trained on normal data, evaluated on the full dataset (5 seeds each).
 
 | Model | TRAIL AUC-ROC | TRACE AUC-ROC | CMU-CERT AUC-ROC |
 |-------|:------------:|:-------------:|:----------------:|
-| Isolation Forest | 0.577 | 0.500 | **0.731** |
+| Isolation Forest | 0.577 | 0.501 | **0.731** |
 | LSTM Autoencoder | 0.685 | 0.521 | 0.723 |
 | Deep Clustering | **0.897** | 0.496 | 0.697 |
 
@@ -69,7 +69,7 @@ The question that matters: does anomaly knowledge transfer across domains?
 |-----------|-------|:-------------:|:-------------:|:----:|
 | TRAIL → TRACE | Isolation Forest | 0.577 | 0.469 | -0.109 |
 | TRAIL → TRACE | Deep Clustering | 0.897 | 0.513 | -0.384 |
-| TRACE → TRAIL | Isolation Forest | 0.500 | **0.614** | **+0.113** |
+| TRACE → TRAIL | Isolation Forest | 0.501 | **0.614** | **+0.113** |
 | TRACE → TRAIL | Deep Clustering | 0.496 | 0.631 | +0.135 |
 
 **Insider ↔ Agent Transfer (the core contribution):**
@@ -84,7 +84,7 @@ The question that matters: does anomaly knowledge transfer across domains?
 
 **The headline result: CERT → TRAIL retains 97% of detection power.** An Isolation Forest trained entirely on insider threat data (329,000 employee user-days) achieves 0.711 AUC-ROC on agent execution traces — a drop of only 0.019 from its within-domain performance. The UBFS bridge works.
 
-The unexpected result: **TRACE → CERT improves Deep Clustering by +0.223.** Training on 249 reward-hacking trajectories produces a richer normal baseline that outperforms within-domain DC on insider detection (0.719 vs 0.697). More training data from *any* domain helps, even across the insider/agent boundary.
+The unexpected result: **TRACE → CERT improves Deep Clustering by +0.223.** Training on 517 reward-hacking trajectories produces a richer normal baseline that outperforms within-domain DC on insider detection (0.719 vs 0.697). More training data from *any* domain helps, even across the insider/agent boundary.
 
 CERT → TRACE fails (~0.50) because reward hacking is structurally undetectable regardless of training domain.
 

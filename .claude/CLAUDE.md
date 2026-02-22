@@ -95,11 +95,11 @@ python generate_figures.py
 | Domain | IF | LSTM | DC |
 |--------|-------|-------|-------|
 | TRAIL | 0.577 | 0.685 | **0.897** |
-| TRACE | 0.500 | 0.521 | 0.496 |
+| TRACE | 0.501 | 0.521 | 0.496 |
 | CMU-CERT (UBFS) | **0.731** | 0.723 | 0.697 |
 
 - **Experiment 2 — Transfer (agent-only):** TRACE→TRAIL improves (+0.11 IF, +0.14 DC). TRAIL→TRACE degrades.
-- **Experiment 2 --cert — CERT cross-domain:** CERT→TRAIL IF=0.712 (97% retention), TRACE→CERT DC=0.719 (+0.22 improvement)
+- **Experiment 2 --cert — CERT cross-domain:** CERT→TRAIL IF=0.711 (97% retention), TRACE→CERT DC=0.719 (+0.22 improvement)
 - **Experiment 3 — OWASP:** ASI02=0.57-0.59 (blind spot), ASI05=0.94-0.97 (best)
 - **Experiment 4 — Governance:** Report generated
 
@@ -119,7 +119,7 @@ python generate_figures.py
 - [x] Run experiments 1-4 end-to-end on Ubuntu PC (agent-only)
 - [x] Integrate CMU-CERT via cert_loader (330,344 user-days, 20-dim UBFS, 1,364 insider-positive)
 - [x] Run Experiment 1 with CMU-CERT baseline (IF=0.731, LSTM=0.723, DC=0.697)
-- [x] Run Experiment 2 with CMU-CERT ↔ Agent transfer (CERT→TRAIL: 0.712, TRACE→CERT: 0.719)
+- [x] Run Experiment 2 with CMU-CERT ↔ Agent transfer (CERT→TRAIL: 0.711, TRACE→CERT: 0.719)
 - [x] Generate all 6 figures (fig1-6 in results/figures/)
 - [ ] Verify notebooks run end-to-end in Jupyter
 
@@ -144,9 +144,9 @@ python generate_figures.py
 
 ### Key Findings (So Far)
 - Tool Misuse (ASI02) is structurally undetectable — parameter changes without pattern changes
-- Reward hacking (TRACE) is undetectable by structural anomaly detection (~0.46 AUC-ROC)
+- Reward hacking (TRACE) is undetectable by structural anomaly detection (~0.50 AUC-ROC)
 - Cross-domain transfer works when source domain has richer normal baseline
-- Deep Clustering outperforms IF and LSTM-AE on agent traces (0.921 vs 0.744 vs 0.597)
+- Deep Clustering outperforms IF and LSTM-AE on TRAIL agent traces (0.897 vs 0.685 vs 0.577)
 
 ### Datasets
 | Dataset | Source | Size | Role |
