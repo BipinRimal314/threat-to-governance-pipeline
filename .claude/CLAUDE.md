@@ -7,7 +7,7 @@
 
 ## What This Is
 
-Research project repurposing MSc insider threat detection models (Isolation Forest, LSTM Autoencoder, Deep Clustering — 0.985 AUC-ROC on CMU-CERT) for AI agent behavioural monitoring. Maps detections to OWASP Top 10 for Agentic Applications. Includes governance analysis of normality assumptions.
+Research project repurposing MSc insider threat detection models (Isolation Forest 0.807, LSTM Autoencoder 0.774, Deep Clustering — on CMU-CERT) for AI agent behavioural monitoring. Maps detections to OWASP Top 10 for Agentic Applications. Includes governance analysis of normality assumptions.
 
 ## Architecture
 

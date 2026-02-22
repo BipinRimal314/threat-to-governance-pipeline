@@ -12,7 +12,7 @@ Most people assume insider threat detection and AI agent monitoring are separate
 
 Both profile a baseline of "normal" behaviour — one for employees, one for agents. Both flag deviations from that baseline as anomalous. Both encode assumptions about trust, authority, and what counts as legitimate action. The detection systems are structurally identical. The governance questions they raise are the same.
 
-This project demonstrates that concretely. I took three anomaly detection models I built for my MSc thesis (Isolation Forest, LSTM Autoencoder, Deep Clustering — validated at 0.985 AUC-ROC on the CMU-CERT insider threat dataset), applied them to AI agent execution traces through a unified feature schema, and mapped the detections to the OWASP Top 10 for Agentic Applications.
+This project demonstrates that concretely. I took three anomaly detection models I built for my MSc thesis (Isolation Forest at 0.807 AUC-ROC, LSTM Autoencoder at 0.774, Deep Clustering — validated on the CMU-CERT insider threat dataset), applied them to AI agent execution traces through a unified feature schema, and mapped the detections to the OWASP Top 10 for Agentic Applications.
 
 The models transfer. Not all of them, and not equally. That's the interesting part.
 
@@ -175,6 +175,6 @@ The governance question underneath both: who decides what "normal" means, and wh
 
 ---
 
-*Built on MSc thesis research (insider threat detection, 0.985 AUC-ROC on CMU-CERT r4.2). Extends to AI agent governance via the Unified Behavioural Feature Schema.*
+*Built on MSc thesis research (insider threat detection, best AUC-ROC 0.807 on CMU-CERT r4.2). Extends to AI agent governance via the Unified Behavioural Feature Schema.*
 
 *For: PhD applications, GovAI Research Scholar candidacy, workshop paper submission.*
