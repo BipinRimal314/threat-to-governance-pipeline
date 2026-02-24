@@ -107,9 +107,16 @@ Chinese state-sponsored group (GTG-1002) used Claude Code as autonomous hacking 
 - **Validates CERT→TRAIL transfer (Exp 2):** Hybrid human-AI attack confirms structural equivalence between insider threat and agent threat patterns.
 
 **Incident 2 — Model Distillation Attack (Feb 23, 2026):**
-DeepSeek, Moonshot AI, MiniMax created ~24,000 fraudulent accounts, 16M+ exchanges to extract Claude capabilities.
+DeepSeek, Moonshot AI, MiniMax created ~24,000 fraudulent accounts, 16M+ exchanges to extract Claude capabilities via "hydra cluster" architectures (20,000+ accounts, no single point of failure).
 
-- **New threat category:** Not insider threat, not agent misuse. API abuse / model extraction. Massive FREQUENCY and VOLUME anomaly that UBFS features should catch.
+Each lab ran a different extraction strategy:
+- **DeepSeek** (150K+ exchanges): Chain-of-thought elicitation — prompted Claude to articulate step-by-step reasoning for completed responses. Generates reasoning training data. Also tested censorship-alternative queries.
+- **Moonshot AI** (3.4M+ exchanges): Multi-capability targeting — agentic reasoning, tool use, coding, data analysis, computer-use agents, computer vision.
+- **MiniMax** (13M+ exchanges): Focused extraction — coding and tool orchestration functions.
+
+Detection: Anthropic used behavioral fingerprinting, chain-of-thought elicitation classifiers, IP/metadata correlation, and coordinated activity tracking across account networks.
+
+- **New threat category:** Not insider threat, not agent misuse. API abuse / model extraction. Three distinct behavioral signatures (SEQUENCE, SCOPE, FREQUENCY). Plus a coordination problem: hydra clusters distribute traffic so per-account volume is normal. Anomaly is only visible in aggregate.
 
 Blog post with analysis: `bipinrimal.com.np/blog/010-when-the-threat-model-is-the-model`
 
@@ -117,55 +124,149 @@ Blog post with analysis: `bipinrimal.com.np/blog/010-when-the-threat-model-is-th
 
 ## Experiment 5: Model Extraction Detection (Distillation Attack Patterns)
 
-**Goal:** Test whether UBFS detects high-volume model extraction attacks.
+**Goal:** Test whether UBFS detects distillation attacks, and specifically whether the "hydra cluster" distribution strategy defeats single-entity behavioral monitoring.
 
-**Hypothesis:** Distillation attacks are highly detectable (>0.85 AUC-ROC) because they create massive structural anomalies in FREQUENCY, VOLUME, and SCOPE. This contrasts with ASI02 (Tool Misuse) which is undetectable. The comparison strengthens the argument: behavioral monitoring catches volume-based attacks but misses intent-based attacks.
+**Key insight from Anthropic disclosure (Feb 23, 2026):** The distillation attack was NOT one pattern. Three labs ran three different extraction strategies, and the hydra cluster architecture (20,000+ accounts) distributed traffic so per-account behavior might look normal. This creates a more nuanced detection problem than "high volume = easy to catch."
+
+**Hypotheses:**
+1. **Single-entity high-volume distillation** is highly detectable (>0.85 AUC-ROC) via FREQUENCY/VOLUME anomalies
+2. **Strategy-specific signatures** have different detection profiles: CoT elicitation (SEQUENCE), multi-capability probing (SCOPE), focused extraction (FREQUENCY)
+3. **Hydra-distributed distillation** per-account is near-undetectable (~0.55-0.65 AUC-ROC) because per-account volume falls within normal bounds
+4. If hypothesis 3 confirms: behavioral monitoring has TWO structural blind spots, not one. Intent-based (ASI02) and coordination-based (HYDRA).
 
 **Implementation:**
 
-1. Add `ASI_DISTILL` profile to `src/data/synthetic_generator.py`:
+1. Add FOUR distillation sub-profiles to `src/data/synthetic_generator.py`:
 
 ```python
-"ASI_DISTILL": {
-    # Model extraction: systematic capability probing
-    # Massive frequency spike, broad scope, low entropy (methodical)
-    "primary_event_count_mult": 15.0,      # 15x normal query rate
-    "secondary_event_count_mult": 10.0,    # High LLM call volume
-    "event_rate_add": 8.0,                 # Extreme rate anomaly
-    "data_volume_mult": 20.0,              # Massive token extraction
-    "resource_breadth_mult": 5.0,          # Probing across many capabilities
-    "target_breadth_mult": 5.0,            # Many distinct endpoints
-    "action_entropy_mult": 0.3,            # LOW entropy — systematic, not organic
-    "repetition_add": 0.6,                 # Repetitive probing patterns
-    "description": "Model Extraction / Distillation",
-}
+# --- DeepSeek pattern: Chain-of-thought elicitation ---
+"ASI_DISTILL_COT": {
+    # Systematic reasoning extraction via step-by-step elicitation
+    # Distinctive SEQUENCE signature: low entropy, high repetition, specific prompt patterns
+    "primary_event_count_mult": 3.0,       # Moderate volume (150K over time)
+    "action_entropy_mult": 0.2,            # VERY low — methodical CoT prompting
+    "repetition_add": 0.8,                 # Highly repetitive (same elicitation pattern)
+    "transition_novelty_mult": 0.3,        # Low novelty — same prompt structure repeated
+    "resource_breadth_mult": 2.0,          # Moderate breadth (reasoning across topics)
+    "data_volume_mult": 5.0,              # High output extraction (long CoT responses)
+    "description": "Chain-of-Thought Elicitation (DeepSeek pattern)",
+},
+
+# --- Moonshot pattern: Multi-capability targeting ---
+"ASI_DISTILL_BROAD": {
+    # Broad capability probing across reasoning, tool use, coding, CV
+    # Distinctive SCOPE signature: extreme breadth, moderate depth per capability
+    "primary_event_count_mult": 5.0,       # 3.4M exchanges
+    "resource_breadth_mult": 8.0,          # EXTREME breadth — many capability domains
+    "target_breadth_mult": 6.0,            # Many distinct endpoints/tools
+    "action_entropy_mult": 0.7,            # Moderate entropy — varied but structured
+    "data_volume_mult": 8.0,              # High extraction volume
+    "event_rate_add": 3.0,                # Elevated but not extreme rate
+    "description": "Multi-Capability Probing (Moonshot pattern)",
+},
+
+# --- MiniMax pattern: Focused extraction ---
+"ASI_DISTILL_FOCUSED": {
+    # Narrow, deep extraction on coding + tool orchestration
+    # Distinctive FREQUENCY signature: massive volume on narrow target
+    "primary_event_count_mult": 15.0,      # 13M exchanges — highest volume
+    "secondary_event_count_mult": 10.0,    # Heavy tool call volume
+    "event_rate_add": 8.0,                 # Extreme rate
+    "data_volume_mult": 20.0,             # Massive extraction
+    "resource_breadth_mult": 1.5,          # NARROW scope — coding/tools only
+    "target_breadth_mult": 2.0,            # Few distinct targets, hit hard
+    "action_entropy_mult": 0.4,            # Low entropy — repetitive deep probing
+    "repetition_add": 0.5,                # High repetition
+    "description": "Focused Extraction (MiniMax pattern)",
+},
+
+# --- Hydra cluster: Distributed across N accounts ---
+"ASI_DISTILL_HYDRA": {
+    # Per-account behavior after distributing across ~20K accounts
+    # Each account's volume is NORMAL. Anomaly is in coordination, not individual behavior.
+    "primary_event_count_mult": 1.05,      # ~5% above normal (barely detectable)
+    "secondary_event_count_mult": 1.1,     # Slight elevation
+    "event_rate_add": 0.2,                 # Within normal variance
+    "data_volume_mult": 1.1,              # Normal-ish
+    "resource_breadth_mult": 1.3,          # Slightly broader than typical user
+    "action_entropy_mult": 0.8,            # Slightly more systematic
+    "repetition_add": 0.1,                # Barely elevated
+    "description": "Hydra Cluster Per-Account (distributed distillation)",
+},
 ```
 
 2. Add perturbation logic in `_perturb_trace()`:
 
 ```python
-elif owasp_category == "ASI_DISTILL":
-    # Model extraction: duplicate traces with systematic variation
-    # Simulate high-frequency capability probing
-    n_repeat = rng.randint(10, 20)
-    original_spans = list(spans)
-    for i in range(n_repeat):
-        for span in original_spans:
-            dup = copy.deepcopy(span)
-            dup["span_id"] = f"distill_{rng.randint(0, 99999)}"
-            # Slightly vary tool names to simulate breadth probing
-            if rng.random() < 0.3:
-                dup["name"] = f"probe_{rng.choice(['math', 'code', 'reason', 'creative', 'factual', 'analysis'])}"
-            spans.append(dup)
+elif owasp_category.startswith("ASI_DISTILL"):
+    if owasp_category == "ASI_DISTILL_COT":
+        # CoT elicitation: repeat similar prompt-response patterns
+        # Simulate systematic "explain your reasoning" queries
+        n_repeat = rng.randint(5, 10)
+        original_spans = list(spans)
+        for i in range(n_repeat):
+            for span in original_spans:
+                dup = copy.deepcopy(span)
+                dup["span_id"] = f"cot_{rng.randint(0, 99999)}"
+                # Add CoT-style tool names
+                dup["name"] = f"elicit_{rng.choice(['reasoning', 'step_by_step', 'chain_of_thought', 'explain', 'elaborate'])}"
+                spans.append(dup)
+
+    elif owasp_category == "ASI_DISTILL_BROAD":
+        # Multi-capability: probe across many different tool types
+        n_repeat = rng.randint(3, 8)
+        capability_domains = ['math', 'code', 'reason', 'creative', 'factual',
+                              'analysis', 'vision', 'tool_use', 'planning', 'search']
+        original_spans = list(spans)
+        for i in range(n_repeat):
+            for span in original_spans:
+                dup = copy.deepcopy(span)
+                dup["span_id"] = f"broad_{rng.randint(0, 99999)}"
+                dup["name"] = f"probe_{rng.choice(capability_domains)}"
+                spans.append(dup)
+
+    elif owasp_category == "ASI_DISTILL_FOCUSED":
+        # Focused: massive repetition on narrow target
+        n_repeat = rng.randint(15, 25)
+        original_spans = list(spans)
+        for i in range(n_repeat):
+            for span in original_spans:
+                dup = copy.deepcopy(span)
+                dup["span_id"] = f"focused_{rng.randint(0, 99999)}"
+                # Narrow: only coding/tool targets
+                if rng.random() < 0.3:
+                    dup["name"] = f"extract_{rng.choice(['code_gen', 'code_review', 'tool_call', 'tool_chain'])}"
+                spans.append(dup)
+
+    elif owasp_category == "ASI_DISTILL_HYDRA":
+        # Hydra: minimal perturbation — each account looks nearly normal
+        # Only very slight parameter shifts applied via profile multipliers
+        # No span duplication — the attack is invisible at individual level
+        pass
 ```
 
-3. Add `"ASI_DISTILL"` to the `categories` list in `experiment_3()` or create `experiment_5()` in `run_experiments.py` following the same pattern as Experiment 3 (synthetic injection → feature extraction → train on normal → evaluate per-category).
+3. Create `experiment_5()` in `run_experiments.py`:
+   - Run all 4 distillation sub-profiles through the Exp 3 pipeline (synthetic injection → feature extraction → train on normal → evaluate)
+   - Report AUC-ROC for each sub-profile separately
+   - Compare: COT vs BROAD vs FOCUSED vs HYDRA vs ASI02 (tool misuse)
+   - Key result table: a spectrum from "easily detectable" (FOCUSED) to "structurally undetectable" (HYDRA, ASI02)
 
-4. Run with all 3 models, 5 seeds. Compare ASI_DISTILL AUC-ROC against ASI02.
+4. Run with all 3 models, 5 seeds.
 
-**Expected output:** `results/tables/experiment_5_distillation.json`
+**Expected output:** `results/tables/experiment_5_distillation.json` with per-sub-profile AUC-ROC
 
-**Estimated time:** ~2 hours (code) + ~30 min (training on RTX 4060)
+**Expected results pattern:**
+| Sub-profile | Expected AUC-ROC | Why |
+|---|---|---|
+| ASI_DISTILL_FOCUSED (MiniMax) | >0.90 | Extreme FREQUENCY spike |
+| ASI_DISTILL_BROAD (Moonshot) | ~0.80-0.85 | Clear SCOPE anomaly |
+| ASI_DISTILL_COT (DeepSeek) | ~0.70-0.80 | SEQUENCE anomaly (testable) |
+| ASI_DISTILL_HYDRA | ~0.55-0.65 | Per-account normal — blind spot |
+| ASI02 Tool Misuse (baseline) | 0.57-0.59 | Known blind spot |
+
+If HYDRA lands near ASI02: two distinct blind spots in the behavioral monitoring paradigm. Different failure modes (intent vs coordination), same ceiling.
+
+**Estimated time:** ~4 hours (code: 4 profiles + perturbation logic + experiment) + ~1 hour (training on RTX 4060)
 
 ---
 
@@ -417,7 +518,7 @@ Run experiments in this order. Each builds on the previous.
 
 | Order | Experiment | Depends On | Time (code + run) |
 |-------|-----------|------------|-------------------|
-| 1st | **Exp 5** (Distillation) | Only `synthetic_generator.py` change | ~2.5 hrs |
+| 1st | **Exp 5** (Distillation) | 4 sub-profiles + perturbation logic | ~5 hrs |
 | 2nd | **Exp 6** (Decomposition) | New loader + feature extension | ~7 hrs |
 | 3rd | **Exp 7** (MCP Transfer) | 2 new loaders + transfer framework | ~10 hrs |
 | 4th | **Exp 8** (Hybrid) | UBFS extension + semantic extractor | ~15 hrs |
