@@ -188,8 +188,10 @@ class TestSyntheticGenerator:
         assert 0.15 < actual_ratio < 0.45  # Approximate
 
     def test_owasp_categories_present(self, base_traces):
+        # Use high anomaly ratio to ensure all 9 categories
+        # appear with only 5 base traces
         mixed, labels, cats = generate_anomalous_traces(
-            base_traces, anomaly_ratio=0.3, seed=42
+            base_traces, anomaly_ratio=0.7, seed=42
         )
         anomalous_cats = [c for c in cats if c]
         for cat in OWASP_PROFILES:
