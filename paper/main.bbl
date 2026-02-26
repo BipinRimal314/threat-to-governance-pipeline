@@ -38,8 +38,8 @@ I.~Homoliak, F.~Toffalini, J.~Guarnizo, Y.~Elovici, and M.~Ochoa, ``Insight
 
 \bibitem{rimal2026insider}
 B.~Rimal, ``The metric that misleads: Why temporal behavioral models outperform
-  static methods for insider threat detection at operational thresholds,'' in
-  \emph{MSc Thesis, Coventry University}, 2026.
+  static methods for insider threat detection at operational thresholds,''
+  Master's thesis, Coventry University, 2026.
 
 \bibitem{anthropic2026distillation}
 {Anthropic}, ``Detecting and countering malicious uses of {Claude}: February
@@ -102,12 +102,12 @@ A.~Pan, K.~Bhatia, and J.~Steinhardt, ``The effects of reward misspecification:
   agents,'' \emph{arXiv preprint arXiv:2512.24565}, 2026, available at
   \url{https://huggingface.co/datasets/AI45Research/ATBench}.
 
-\bibitem{souly2024agentharm}
-A.~Souly, Q.~Lu, D.~Bowen, T.~Trinh, E.~Hsieh, S.~Pandey, J.~Picel, J.~Gresham,
-  S.~Telang, J.~Coda-Forno, P.~Christoffersen, P.~Abbeel, D.~Hadfield-Menell,
-  P.~Christiano \emph{et~al.}, ``A {StrongREJECT} for empty jailbreaks:
-  Evaluating the robustness of safety refusals in large language models,'' in
-  \emph{UK AI Safety Institute Technical Report}, 2024.
+\bibitem{andriushchenko2024agentharm}
+M.~Andriushchenko, A.~Souly, M.~Dziemian, D.~Duenas, M.~Lin, J.~Wang,
+  D.~Hendrycks, A.~Zou, Z.~Kolter, M.~Fredrikson, E.~Winsor, J.~Wynne, Y.~Gal,
+  and X.~Davies, ``{AgentHarm}: A benchmark for measuring harmfulness of {LLM}
+  agents,'' in \emph{International Conference on Learning Representations
+  (ICLR)}, 2025.
 
 \bibitem{zhuang2020transfer}
 F.~Zhuang, Z.~Qi, K.~Duan, D.~Xi, Y.~Zhu, H.~Zhu, H.~Xiong, and Q.~He, ``A
