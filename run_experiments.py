@@ -3,8 +3,10 @@
 Usage:
     python run_experiments.py --experiment 1   # Within-domain baselines
     python run_experiments.py --experiment 2   # Cross-domain transfer
-    python run_experiments.py --experiment 3   # OWASP category mapping
+    python run_experiments.py --experiment 3   # OWASP category mapping (multi-seed + CIs)
     python run_experiments.py --experiment 4   # Governance assumption audit
+    python run_experiments.py --experiment 12  # Real-data OWASP on ATBench + UBFS-28
+    python run_experiments.py --experiment 13  # Distillation sensitivity analysis
     python run_experiments.py --all            # Run everything
     python run_experiments.py --all --cert     # Include CMU-CERT data
 """
@@ -539,68 +541,165 @@ def _aggregate_transfer(seed_results):
 
 
 def experiment_3():
-    """OWASP ASI category mapping using synthetic anomalies."""
+    """OWASP ASI category mapping — multi-seed with bootstrap CIs.
+
+    Evaluates per-category detection across 3 models × 5 seeds with
+    anomaly_ratio=0.5 for ~30 samples per category. Reports bootstrap
+    95% CIs and Wilcoxon signed-rank tests between tier boundaries.
+    """
+    from scipy.stats import bootstrap, wilcoxon
+
     print("\n" + "=" * 60)
-    print("EXPERIMENT 3: OWASP Category Mapping")
+    print("EXPERIMENT 3: OWASP Category Mapping (Multi-Seed)")
     print("=" * 60)
 
     trail = load_trail_dataset()
-    # Use all traces as base for synthetic injection
     base_traces = trail["traces"]
     print(f"  Using {len(base_traces)} TRAIL traces as base")
 
-    print("  Generating OWASP-labelled anomalies...")
-    mixed, labels, owasp_cats = generate_anomalous_traces(
-        base_traces, anomaly_ratio=0.3, seed=42
-    )
-    print(f"  Mixed: {len(mixed)} traces, "
-          f"{labels.sum()} anomalous")
-    cats_present = set(c for c in owasp_cats if c)
-    print(f"  Categories: {cats_present}")
+    categories = ["ASI01", "ASI02", "ASI04", "ASI05", "ASI09", "ASI10"]
 
-    # Extract features
-    extractor = AgentTraceFeatureExtractor()
-    X, ids, ts = extractor.extract_batch(mixed)
-    normalizer = UBFSNormalizer(method="zscore")
-    X = normalizer.fit_transform(X)
-
-    # Train on normal subset
-    normal_mask = labels == 0
-    X_train_normal = X[normal_mask]
-    print(f"  Training on {len(X_train_normal)} normal traces")
-
-    results = {}
-    models = {
-        "IsolationForest": IsolationForestDetector(
-            n_estimators=200, seed=42
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
         ),
-        "DeepClustering": DeepClusteringDetector(
-            pretrain_epochs=30, seed=42
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
         ),
     }
 
-    for name, model in models.items():
-        print(f"\n  {name}...")
-        model.fit(X_train_normal)
-        scores = model.score(X)
-        overall = compute_metrics(labels, scores)
-        print(f"    Overall AUC-ROC: {overall.auc_roc:.4f}")
+    results = {}
 
-        # Per-category analysis
-        owasp_result = evaluate_owasp_detection(
-            model, X, labels, owasp_cats
-        )
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        seed_per_cat = {cat: [] for cat in categories}
+
+        for seed in SEEDS:
+            print(f"    seed={seed}...", end=" ", flush=True)
+            mixed, labels, owasp_cats = generate_anomalous_traces(
+                base_traces,
+                anomaly_ratio=0.5,
+                categories=categories,
+                seed=seed,
+            )
+
+            extractor = AgentTraceFeatureExtractor()
+            X, ids, ts = extractor.extract_batch(mixed)
+            normalizer = UBFSNormalizer(method="zscore")
+            X = normalizer.fit_transform(X)
+
+            normal_mask = labels == 0
+            X_train = X[normal_mask]
+
+            if name == "LSTMAutoencoder":
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train[:, np.newaxis, :])
+                scores = model.score(X[:, np.newaxis, :])
+            else:
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train)
+                scores = model.score(X)
+
+            normal_cat_mask = np.array([
+                c == "" for c in owasp_cats
+            ])
+
+            line_parts = []
+            for cat in categories:
+                cat_mask = np.array([
+                    c == cat for c in owasp_cats
+                ])
+                eval_mask = cat_mask | normal_cat_mask
+                cat_y = np.zeros_like(labels)
+                cat_y[cat_mask] = 1
+
+                if cat_y[eval_mask].sum() > 0:
+                    cat_m = compute_metrics(
+                        cat_y[eval_mask], scores[eval_mask]
+                    )
+                    seed_per_cat[cat].append(cat_m.to_dict())
+                    line_parts.append(
+                        f"{cat}={cat_m.auc_roc:.3f}"
+                    )
+
+            print(" ".join(line_parts))
+
+        # Aggregate per-category with bootstrap CIs
+        agg_cats = {}
+        for cat in categories:
+            if seed_per_cat[cat]:
+                agg_cats[cat] = {}
+                for key in seed_per_cat[cat][0]:
+                    vals = [r[key] for r in seed_per_cat[cat]]
+                    arr = np.array(vals)
+                    ci_lo, ci_hi = np.nan, np.nan
+                    if len(arr) >= 3:
+                        try:
+                            res = bootstrap(
+                                (arr,),
+                                np.mean,
+                                n_resamples=9999,
+                                confidence_level=0.95,
+                                random_state=42,
+                            )
+                            ci_lo = float(res.confidence_interval.low)
+                            ci_hi = float(res.confidence_interval.high)
+                        except Exception:
+                            pass
+                    agg_cats[cat][key] = {
+                        "mean": float(np.mean(vals)),
+                        "std": float(np.std(vals)),
+                        "ci_95": [ci_lo, ci_hi],
+                    }
+
+        # Wilcoxon signed-rank tests between tier boundaries
+        # Tier ordering: ASI05 > ASI09 > ASI10 > ASI01 > ASI02
+        tier_pairs = [
+            ("ASI05", "ASI09"),
+            ("ASI09", "ASI01"),
+            ("ASI01", "ASI02"),
+        ]
+        wilcoxon_results = {}
+        for cat_a, cat_b in tier_pairs:
+            if cat_a in seed_per_cat and cat_b in seed_per_cat:
+                vals_a = [r["auc_roc"] for r in seed_per_cat[cat_a]]
+                vals_b = [r["auc_roc"] for r in seed_per_cat[cat_b]]
+                if len(vals_a) == len(vals_b) and len(vals_a) >= 3:
+                    try:
+                        stat, p = wilcoxon(vals_a, vals_b,
+                                           alternative="greater")
+                        wilcoxon_results[f"{cat_a}_vs_{cat_b}"] = {
+                            "statistic": float(stat),
+                            "p_value": float(p),
+                        }
+                    except Exception:
+                        pass
+
         results[name] = {
-            "overall": overall.to_dict(),
-            "per_category": owasp_result.category_metrics,
-            "blind_spots": owasp_result.blind_spots,
+            "per_category": agg_cats,
+            "wilcoxon_tier_tests": wilcoxon_results,
         }
 
-        for cat, met in owasp_result.category_metrics.items():
-            if isinstance(met, dict) and "auc_roc" in met:
-                print(f"    {cat}: AUC-ROC={met['auc_roc']:.4f}")
-        print(f"    Blind spots: {owasp_result.blind_spots}")
+        for cat in categories:
+            if cat in agg_cats:
+                m = agg_cats[cat]["auc_roc"]["mean"]
+                s = agg_cats[cat]["auc_roc"]["std"]
+                ci = agg_cats[cat]["auc_roc"]["ci_95"]
+                print(f"    {cat}: AUC-ROC={m:.4f} "
+                      f"(+/- {s:.4f}) "
+                      f"CI=[{ci[0]:.4f}, {ci[1]:.4f}]")
+        for pair, wres in wilcoxon_results.items():
+            print(f"    Wilcoxon {pair}: "
+                  f"p={wres['p_value']:.4f}")
 
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
     with open(TABLES_DIR / "experiment_3_owasp.json", "w") as f:
         json.dump(results, f, indent=2, default=str)
 
@@ -950,11 +1049,30 @@ def experiment_6():
             - agg_decomposed["auc_roc"]["mean"]
         )
 
+        # Wilcoxon signed-rank test: direct vs decomposed
+        from scipy.stats import wilcoxon as _wilcoxon
+        wilcoxon_stat, wilcoxon_p = np.nan, np.nan
+        direct_aucs = [r["auc_roc"] for r in seed_direct]
+        decomp_aucs = [r["auc_roc"] for r in seed_decomposed]
+        if (len(direct_aucs) == len(decomp_aucs)
+                and len(direct_aucs) >= 3):
+            try:
+                wilcoxon_stat, wilcoxon_p = _wilcoxon(
+                    direct_aucs, decomp_aucs,
+                    alternative="greater",
+                )
+                wilcoxon_stat = float(wilcoxon_stat)
+                wilcoxon_p = float(wilcoxon_p)
+            except Exception:
+                pass
+
         results[name] = {
             "overall": agg_overall,
             "direct": agg_direct,
             "decomposed": agg_decomposed,
             "auc_roc_delta": delta,
+            "wilcoxon_stat": wilcoxon_stat,
+            "wilcoxon_p": wilcoxon_p,
         }
 
         print(f"    Direct AUC-ROC: "
@@ -965,6 +1083,8 @@ def experiment_6():
               f"(+/- {agg_decomposed['auc_roc']['std']:.4f})")
         print(f"    Delta (direct - decomposed): "
               f"{delta:+.4f}")
+        print(f"    Wilcoxon: stat={wilcoxon_stat:.2f}, "
+              f"p={wilcoxon_p:.4f}")
 
     # Summary
     print("\n" + "-" * 60)
@@ -2286,14 +2406,463 @@ def experiment_11():
     return results
 
 
+def experiment_12():
+    """Real-data OWASP validation + UBFS-28 on ATBench.
+
+    Phase A: All 3 models on ATBench per-category (UBFS-20)
+    Phase B: UBFS-28 on ATBench per-category
+    Phase C: Spearman correlation — synthetic (Exp 3) vs real ATBench
+
+    This is the real-data validation experiment: Exp 3 uses circular
+    synthetic methodology (profiles define perturbations, then models
+    detect those same perturbations). Exp 12 tests the same categories
+    on 500 real ATBench trajectories with ground-truth labels.
+    """
+    from scipy.stats import spearmanr
+
+    print("\n" + "=" * 60)
+    print("EXPERIMENT 12: Real-Data OWASP Validation (ATBench)")
+    print("=" * 60)
+
+    from src.data.atbench_loader import load_atbench
+    from src.features.semantic_extractor import (
+        SemanticFeatureExtractor,
+    )
+
+    # Load ATBench
+    print("  Loading ATBench...")
+    atbench = load_atbench()
+    at_traces = atbench["trajectories"]
+    y_at = atbench["labels"]
+    owasp_at = atbench["owasp_labels"]
+
+    # UBFS-20 features
+    extractor = AgentTraceFeatureExtractor()
+    X_20_raw, ids, ts = extractor.extract_batch(at_traces)
+    norm_20 = UBFSNormalizer(method="zscore")
+    X_20 = norm_20.fit_transform(X_20_raw)
+
+    # UBFS-28: add semantic features
+    print("  Computing semantic features for UBFS-28...")
+    safe_traces = [t for t, y in zip(at_traces, y_at) if y == 0]
+    sem_ext = SemanticFeatureExtractor()
+    sem_ext.fit_baseline(safe_traces)
+    X_sem_raw = sem_ext.extract_batch(at_traces)
+    norm_sem = UBFSNormalizer(method="zscore")
+    X_sem = norm_sem.fit_transform(X_sem_raw)
+    X_28 = np.hstack([X_20, X_sem])
+
+    # Free semantic model
+    import src.features.semantic_extractor as _sem_mod
+    import gc
+    _sem_mod._MODEL = None
+    gc.collect()
+
+    normal_at = y_at == 0
+    print(f"  ATBench: {X_20.shape[0]} traces, "
+          f"{normal_at.sum()} safe, {(~normal_at).sum()} unsafe")
+    print(f"  UBFS-20: {X_20.shape}, UBFS-28: {X_28.shape}")
+
+    # Identify OWASP categories present in ATBench
+    cats_present = sorted(set(o for o in owasp_at if o))
+    print(f"  OWASP categories present: {cats_present}")
+
+    normal_cat_mask = np.array([o == "" for o in owasp_at])
+
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
+        ),
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
+        ),
+    }
+
+    results = {"phase_a_ubfs20": {}, "phase_b_ubfs28": {},
+               "phase_c_correlation": {}}
+
+    # ---- Phase A: UBFS-20 per-category ----
+    print("\n--- Phase A: UBFS-20 Per-Category ---")
+
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        seed_per_cat = {cat: [] for cat in cats_present}
+        seed_overall = []
+
+        for seed in SEEDS:
+            print(f"    seed={seed}...", end=" ", flush=True)
+            X_train = X_20[normal_at]
+
+            if name == "LSTMAutoencoder":
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train[:, np.newaxis, :])
+                scores = model.score(X_20[:, np.newaxis, :])
+            else:
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train)
+                scores = model.score(X_20)
+
+            overall = compute_metrics(y_at, scores)
+            seed_overall.append(overall.to_dict())
+
+            line_parts = []
+            for cat in cats_present:
+                cat_mask = np.array([o == cat for o in owasp_at])
+                eval_mask = cat_mask | normal_cat_mask
+                cat_y = np.zeros_like(y_at)
+                cat_y[cat_mask] = 1
+
+                if cat_y[eval_mask].sum() > 0:
+                    cat_m = compute_metrics(
+                        cat_y[eval_mask], scores[eval_mask]
+                    )
+                    seed_per_cat[cat].append(cat_m.to_dict())
+                    line_parts.append(
+                        f"{cat}={cat_m.auc_roc:.3f}"
+                    )
+            print(" ".join(line_parts))
+
+        agg_overall = _aggregate_seeds(seed_overall)
+        agg_cats = {}
+        for cat in cats_present:
+            if seed_per_cat[cat]:
+                agg_cats[cat] = _aggregate_seeds(
+                    seed_per_cat[cat]
+                )
+        results["phase_a_ubfs20"][name] = {
+            "overall": agg_overall,
+            "per_category": agg_cats,
+        }
+
+        print(f"    Overall: "
+              f"{agg_overall['auc_roc']['mean']:.4f}")
+        for cat in cats_present:
+            if cat in agg_cats:
+                m = agg_cats[cat]["auc_roc"]["mean"]
+                s = agg_cats[cat]["auc_roc"]["std"]
+                print(f"    {cat}: {m:.4f} (+/- {s:.4f})")
+
+    # ---- Phase B: UBFS-28 per-category ----
+    print("\n--- Phase B: UBFS-28 Per-Category ---")
+
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        seed_per_cat = {cat: [] for cat in cats_present}
+        seed_overall = []
+
+        for seed in SEEDS:
+            print(f"    seed={seed}...", end=" ", flush=True)
+            X_train = X_28[normal_at]
+
+            if name == "LSTMAutoencoder":
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train[:, np.newaxis, :])
+                scores = model.score(X_28[:, np.newaxis, :])
+            else:
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train)
+                scores = model.score(X_28)
+
+            overall = compute_metrics(y_at, scores)
+            seed_overall.append(overall.to_dict())
+
+            line_parts = []
+            for cat in cats_present:
+                cat_mask = np.array([o == cat for o in owasp_at])
+                eval_mask = cat_mask | normal_cat_mask
+                cat_y = np.zeros_like(y_at)
+                cat_y[cat_mask] = 1
+
+                if cat_y[eval_mask].sum() > 0:
+                    cat_m = compute_metrics(
+                        cat_y[eval_mask], scores[eval_mask]
+                    )
+                    seed_per_cat[cat].append(cat_m.to_dict())
+                    line_parts.append(
+                        f"{cat}={cat_m.auc_roc:.3f}"
+                    )
+            print(" ".join(line_parts))
+
+        agg_overall = _aggregate_seeds(seed_overall)
+        agg_cats = {}
+        for cat in cats_present:
+            if seed_per_cat[cat]:
+                agg_cats[cat] = _aggregate_seeds(
+                    seed_per_cat[cat]
+                )
+        results["phase_b_ubfs28"][name] = {
+            "overall": agg_overall,
+            "per_category": agg_cats,
+        }
+
+        print(f"    Overall: "
+              f"{agg_overall['auc_roc']['mean']:.4f}")
+        for cat in cats_present:
+            if cat in agg_cats:
+                m = agg_cats[cat]["auc_roc"]["mean"]
+                s = agg_cats[cat]["auc_roc"]["std"]
+                print(f"    {cat}: {m:.4f} (+/- {s:.4f})")
+
+    # ---- Phase C: Synthetic vs Real Spearman correlation ----
+    print("\n--- Phase C: Synthetic vs Real Correlation ---")
+
+    exp3_path = TABLES_DIR / "experiment_3_owasp.json"
+    if exp3_path.exists():
+        with open(exp3_path) as f:
+            exp3_data = json.load(f)
+
+        # Compare per-model: for each shared category, collect
+        # synthetic AUC-ROC (Exp 3) and real AUC-ROC (Exp 12 Phase A)
+        for name in models_spec:
+            synth_aucs = []
+            real_aucs = []
+            shared_cats = []
+            exp3_model = exp3_data.get(name, {})
+            exp12_model = results["phase_a_ubfs20"].get(
+                name, {}
+            ).get("per_category", {})
+
+            exp3_cats = exp3_model.get("per_category", {})
+            for cat in cats_present:
+                if cat in exp3_cats and cat in exp12_model:
+                    s_auc = exp3_cats[cat].get(
+                        "auc_roc", {}
+                    ).get("mean", None)
+                    r_auc = exp12_model[cat].get(
+                        "auc_roc", {}
+                    ).get("mean", None)
+                    if s_auc is not None and r_auc is not None:
+                        synth_aucs.append(s_auc)
+                        real_aucs.append(r_auc)
+                        shared_cats.append(cat)
+
+            if len(synth_aucs) >= 3:
+                rho, p = spearmanr(synth_aucs, real_aucs)
+                results["phase_c_correlation"][name] = {
+                    "spearman_rho": float(rho),
+                    "spearman_p": float(p),
+                    "n_categories": len(shared_cats),
+                    "categories": shared_cats,
+                    "synthetic_aucs": synth_aucs,
+                    "real_aucs": real_aucs,
+                }
+                print(f"  {name}: rho={rho:.4f}, p={p:.4f} "
+                      f"(n={len(shared_cats)} categories)")
+
+                # Which categories synthetic over/under-estimates
+                for i, cat in enumerate(shared_cats):
+                    diff = synth_aucs[i] - real_aucs[i]
+                    direction = ("OVER" if diff > 0.05
+                                 else "UNDER" if diff < -0.05
+                                 else "OK")
+                    print(f"    {cat}: synth={synth_aucs[i]:.4f}, "
+                          f"real={real_aucs[i]:.4f} → {direction}")
+            else:
+                print(f"  {name}: too few shared categories "
+                      f"({len(synth_aucs)}) for Spearman")
+    else:
+        print("  Exp 3 results not found — run Exp 3 first")
+
+    # ---- Summary ----
+    print("\n" + "-" * 60)
+    print("Experiment 12 Summary — Real-Data OWASP:")
+
+    print(f"\n  {'Model':<18s} {'Cat':<8s} "
+          f"{'UBFS-20':>10s} {'UBFS-28':>10s} "
+          f"{'Delta':>10s}")
+    print("  " + "-" * 60)
+    for name in models_spec:
+        a_cats = results["phase_a_ubfs20"].get(
+            name, {}
+        ).get("per_category", {})
+        b_cats = results["phase_b_ubfs28"].get(
+            name, {}
+        ).get("per_category", {})
+        for cat in cats_present:
+            v20 = a_cats.get(cat, {}).get(
+                "auc_roc", {}
+            ).get("mean", 0)
+            v28 = b_cats.get(cat, {}).get(
+                "auc_roc", {}
+            ).get("mean", 0)
+            d = v28 - v20
+            print(f"  {name:<18s} {cat:<8s} "
+                  f"{v20:>10.4f} {v28:>10.4f} "
+                  f"{d:>+10.4f}")
+
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "experiment_12_real_owasp.json"
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2, default=str)
+
+    print(f"\nResults saved to {out_path}")
+    return results
+
+
+def experiment_13():
+    """Distillation sensitivity analysis.
+
+    Scales distillation profile multipliers by [0.25, 0.5, 1.0, 2.0]
+    to test how detection degrades with lower attack intensity.
+    Scaling formula: new_mult = 1 + (old_mult - 1) * scale
+
+    HYDRA should remain flat (already near 1.0 multipliers), while
+    FOCUSED/BROAD/COT should show clear degradation at lower scales.
+    """
+    from src.data.synthetic_generator import OWASP_PROFILES
+
+    print("\n" + "=" * 60)
+    print("EXPERIMENT 13: Distillation Sensitivity Analysis")
+    print("=" * 60)
+
+    trail = load_trail_dataset()
+    base_traces = trail["traces"]
+    print(f"  Using {len(base_traces)} TRAIL traces as base")
+
+    distill_cats = [
+        "ASI_DISTILL_COT", "ASI_DISTILL_BROAD",
+        "ASI_DISTILL_FOCUSED", "ASI_DISTILL_HYDRA",
+    ]
+    scales = [0.25, 0.5, 1.0, 2.0]
+
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
+        ),
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
+        ),
+    }
+
+    # Save original profiles to restore later
+    import copy as _copy
+    original_profiles = {
+        cat: _copy.deepcopy(OWASP_PROFILES[cat])
+        for cat in distill_cats
+    }
+
+    results = {}
+
+    try:
+        for name, (cls, kwargs) in models_spec.items():
+            print(f"\n  {name}:")
+            results[name] = {}
+
+            for cat in distill_cats:
+                results[name][cat] = {}
+
+                for scale in scales:
+                    # Scale the profile: new = 1 + (orig - 1) * scale
+                    scaled = _copy.deepcopy(original_profiles[cat])
+                    for key, val in scaled.items():
+                        if key == "description":
+                            continue
+                        if key.endswith("_mult"):
+                            scaled[key] = 1.0 + (val - 1.0) * scale
+                        elif key.endswith("_add"):
+                            scaled[key] = val * scale
+                    OWASP_PROFILES[cat] = scaled
+
+                    seed_aucs = []
+                    for seed in SEEDS:
+                        mixed, labels, owasp_cats = \
+                            generate_anomalous_traces(
+                                base_traces,
+                                anomaly_ratio=0.3,
+                                categories=[cat],
+                                seed=seed,
+                            )
+
+                        extractor = AgentTraceFeatureExtractor()
+                        X, ids, ts = extractor.extract_batch(mixed)
+                        normalizer = UBFSNormalizer(method="zscore")
+                        X = normalizer.fit_transform(X)
+
+                        normal_mask = labels == 0
+                        X_train = X[normal_mask]
+
+                        if name == "LSTMAutoencoder":
+                            model = cls(**{**kwargs, "seed": seed})
+                            model.fit(X_train[:, np.newaxis, :])
+                            scores = model.score(
+                                X[:, np.newaxis, :]
+                            )
+                        else:
+                            model = cls(**{**kwargs, "seed": seed})
+                            model.fit(X_train)
+                            scores = model.score(X)
+
+                        m = compute_metrics(labels, scores)
+                        seed_aucs.append(m.auc_roc)
+
+                    mean_auc = float(np.mean(seed_aucs))
+                    std_auc = float(np.std(seed_aucs))
+                    results[name][cat][str(scale)] = {
+                        "auc_roc_mean": mean_auc,
+                        "auc_roc_std": std_auc,
+                    }
+
+                    short = cat.replace("ASI_DISTILL_", "")
+                    print(f"    {short} scale={scale}: "
+                          f"AUC={mean_auc:.4f} "
+                          f"(+/- {std_auc:.4f})")
+
+    finally:
+        # Restore original profiles
+        for cat in distill_cats:
+            OWASP_PROFILES[cat] = original_profiles[cat]
+
+    # Summary
+    print("\n" + "-" * 60)
+    print("Experiment 13 Summary — Sensitivity:")
+    header = f"  {'Profile':<18s}"
+    for s in scales:
+        header += f" {s:>8.2f}x"
+    print(header)
+    print("  " + "-" * 60)
+    for name in results:
+        print(f"  {name}:")
+        for cat in distill_cats:
+            short = cat.replace("ASI_DISTILL_", "")
+            row = f"    {short:<16s}"
+            for s in scales:
+                v = results[name].get(cat, {}).get(
+                    str(s), {}
+                ).get("auc_roc_mean", 0)
+                row += f" {v:>8.4f}"
+            print(row)
+
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "experiment_13_sensitivity.json"
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2, default=str)
+
+    print(f"\nResults saved to {out_path}")
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Threat-to-Governance Pipeline Experiments"
     )
     parser.add_argument(
         "--experiment", type=int,
-        choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-        help="Run specific experiment (1-11)"
+        choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        help="Run specific experiment (1-13)"
     )
     parser.add_argument(
         "--all", action="store_true",
@@ -2340,6 +2909,10 @@ def main():
             all_results[10] = experiment_10()
         elif exp == 11:
             all_results[11] = experiment_11()
+        elif exp == 12:
+            all_results[12] = experiment_12()
+        elif exp == 13:
+            all_results[13] = experiment_13()
         elapsed = time.time() - t0
         print(f"\nExperiment {exp} completed in {elapsed:.1f}s")
 
