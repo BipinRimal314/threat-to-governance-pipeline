@@ -133,17 +133,20 @@ class AgentTraceFeatureExtractor:
         }
 
     def extract_trace_features(
-        self, parsed_trace: dict
+        self, parsed_trace: dict, max_spans: Optional[int] = None,
     ) -> np.ndarray:
         """Extract UBFS vector from a single parsed trace.
 
         Args:
             parsed_trace: Output of parse_otel_trace().
+            max_spans: If set, use only the first N spans.
 
         Returns:
             UBFS vector as numpy array (total_dim,).
         """
         spans = parsed_trace["spans"]
+        if max_spans is not None:
+            spans = spans[:max_spans]
         features = np.zeros(
             self.config.total_dim, dtype=np.float32
         )
@@ -251,12 +254,15 @@ class AgentTraceFeatureExtractor:
         return features
 
     def extract_batch(
-        self, traces: List[dict]
+        self,
+        traces: List[dict],
+        max_spans: Optional[int] = None,
     ) -> Tuple[np.ndarray, List[str], List[str]]:
         """Extract UBFS vectors for a batch of traces.
 
         Args:
             traces: List of raw trace dictionaries.
+            max_spans: If set, use only the first N spans per trace.
 
         Returns:
             Tuple of:
@@ -278,7 +284,9 @@ class AgentTraceFeatureExtractor:
         self._build_vocab(parsed_traces)
 
         for i, parsed in enumerate(parsed_traces):
-            X[i] = self.extract_trace_features(parsed)
+            X[i] = self.extract_trace_features(
+                parsed, max_spans=max_spans
+            )
             entity_ids.append(parsed["trace_id"])
             if parsed["spans"]:
                 timestamps.append(

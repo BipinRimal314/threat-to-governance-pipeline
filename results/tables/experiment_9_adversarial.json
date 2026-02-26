@@ -1,0 +1,506 @@
+{
+  "clamping": {
+    "IsolationForest": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6403326403326404,
+          "std": 0.04238819620149647
+        },
+        "clamped_auc": {
+          "mean": 0.6075883575883576,
+          "std": 0.03231828625704353
+        },
+        "drop_pct": 5.11
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5137733887733889,
+          "std": 0.05837888183824932
+        },
+        "clamped_auc": {
+          "mean": 0.505925155925156,
+          "std": 0.056036578752538285
+        },
+        "drop_pct": 1.53
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.927962577962578,
+          "std": 0.013483895256775003
+        },
+        "clamped_auc": {
+          "mean": 0.8549896049896051,
+          "std": 0.027906295520847644
+        },
+        "drop_pct": 7.86
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8632882882882882,
+          "std": 0.018257140741444598
+        },
+        "clamped_auc": {
+          "mean": 0.8420045045045045,
+          "std": 0.012069004249161098
+        },
+        "drop_pct": 2.47
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.7394144144144146,
+          "std": 0.017396370736331133
+        },
+        "clamped_auc": {
+          "mean": 0.7185810810810811,
+          "std": 0.01009375938752095
+        },
+        "drop_pct": 2.82
+      }
+    },
+    "LSTMAutoencoder": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6268191268191268,
+          "std": 0.025549320001907117
+        },
+        "clamped_auc": {
+          "mean": 0.6085239085239085,
+          "std": 0.017724635832933686
+        },
+        "drop_pct": 2.92
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5185550935550937,
+          "std": 0.048919983589655804
+        },
+        "clamped_auc": {
+          "mean": 0.5086278586278586,
+          "std": 0.04991916261293699
+        },
+        "drop_pct": 1.91
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.9756756756756758,
+          "std": 0.0037393151244501013
+        },
+        "clamped_auc": {
+          "mean": 0.7714137214137213,
+          "std": 0.011730252232262435
+        },
+        "drop_pct": 20.94
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8135135135135136,
+          "std": 0.027950622862460136
+        },
+        "clamped_auc": {
+          "mean": 0.757882882882883,
+          "std": 0.015424228529967462
+        },
+        "drop_pct": 6.84
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.670045045045045,
+          "std": 0.024327973533407758
+        },
+        "clamped_auc": {
+          "mean": 0.6443693693693694,
+          "std": 0.016652203366462913
+        },
+        "drop_pct": 3.83
+      }
+    },
+    "DeepClustering": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6333679833679834,
+          "std": 0.04728141653839763
+        },
+        "clamped_auc": {
+          "mean": 0.6591476091476091,
+          "std": 0.023512952856401287
+        },
+        "drop_pct": -4.07
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5366424116424117,
+          "std": 0.06196420269353901
+        },
+        "clamped_auc": {
+          "mean": 0.5290020790020791,
+          "std": 0.0454026994807239
+        },
+        "drop_pct": 1.42
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.9891891891891891,
+          "std": 0.00806132888579683
+        },
+        "clamped_auc": {
+          "mean": 0.8903326403326404,
+          "std": 0.012395804728285933
+        },
+        "drop_pct": 9.99
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8460585585585585,
+          "std": 0.04509091133343252
+        },
+        "clamped_auc": {
+          "mean": 0.8338963963963965,
+          "std": 0.0379506175311103
+        },
+        "drop_pct": 1.44
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.7333333333333334,
+          "std": 0.037980012278618816
+        },
+        "clamped_auc": {
+          "mean": 0.7343468468468469,
+          "std": 0.018072131578140267
+        },
+        "drop_pct": -0.14
+      }
+    }
+  },
+  "escalation": {
+    "IsolationForest": {
+      "ASI01": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI02": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI05": {
+        "detection_step": {
+          "mean": 3.2,
+          "std": 0.9797958971132712
+        },
+        "alpha_at_detection": {
+          "mean": 0.6399999999999999,
+          "std": 0.19595917942265426
+        }
+      },
+      "ASI09": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI10": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    },
+    "LSTMAutoencoder": {
+      "ASI01": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI02": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI05": {
+        "detection_step": {
+          "mean": 4.6,
+          "std": 0.4898979485566356
+        },
+        "alpha_at_detection": {
+          "mean": 0.9199999999999999,
+          "std": 0.09797958971132709
+        }
+      },
+      "ASI09": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI10": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    },
+    "DeepClustering": {
+      "ASI01": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI02": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI05": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI09": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "ASI10": {
+        "detection_step": {
+          "mean": 50.0,
+          "std": 0.0
+        },
+        "alpha_at_detection": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      }
+    }
+  },
+  "mimicry": {
+    "IsolationForest": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6403326403326404,
+          "std": 0.04238819620149647
+        },
+        "mimicry_auc": {
+          "mean": 0.5791580041580041,
+          "std": 0.03700740496650201
+        },
+        "drop_pct": 9.55
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5137733887733889,
+          "std": 0.05837888183824932
+        },
+        "mimicry_auc": {
+          "mean": 0.5137733887733889,
+          "std": 0.05837888183824932
+        },
+        "drop_pct": 0.0
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.927962577962578,
+          "std": 0.013483895256775003
+        },
+        "mimicry_auc": {
+          "mean": 0.8716735966735966,
+          "std": 0.034156112378223906
+        },
+        "drop_pct": 6.07
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8632882882882882,
+          "std": 0.018257140741444598
+        },
+        "mimicry_auc": {
+          "mean": 0.7371621621621621,
+          "std": 0.022607946110503856
+        },
+        "drop_pct": 14.61
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.7394144144144146,
+          "std": 0.017396370736331133
+        },
+        "mimicry_auc": {
+          "mean": 0.6478603603603604,
+          "std": 0.013365366621114755
+        },
+        "drop_pct": 12.38
+      }
+    },
+    "LSTMAutoencoder": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6268191268191268,
+          "std": 0.025549320001907117
+        },
+        "mimicry_auc": {
+          "mean": 0.5740644490644491,
+          "std": 0.01855735003779195
+        },
+        "drop_pct": 8.42
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5185550935550937,
+          "std": 0.048919983589655804
+        },
+        "mimicry_auc": {
+          "mean": 0.5185550935550937,
+          "std": 0.048919983589655804
+        },
+        "drop_pct": 0.0
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.9756756756756758,
+          "std": 0.0037393151244501013
+        },
+        "mimicry_auc": {
+          "mean": 0.7306133056133056,
+          "std": 0.03494702933796369
+        },
+        "drop_pct": 25.12
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8135135135135136,
+          "std": 0.027950622862460136
+        },
+        "mimicry_auc": {
+          "mean": 0.6947072072072074,
+          "std": 0.02310727392555069
+        },
+        "drop_pct": 14.6
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.670045045045045,
+          "std": 0.024327973533407758
+        },
+        "mimicry_auc": {
+          "mean": 0.5945945945945945,
+          "std": 0.022668446198353405
+        },
+        "drop_pct": 11.26
+      }
+    },
+    "DeepClustering": {
+      "ASI01": {
+        "baseline_auc": {
+          "mean": 0.6333679833679834,
+          "std": 0.04728141653839763
+        },
+        "mimicry_auc": {
+          "mean": 0.602962577962578,
+          "std": 0.020289185694396434
+        },
+        "drop_pct": 4.8
+      },
+      "ASI02": {
+        "baseline_auc": {
+          "mean": 0.5366424116424117,
+          "std": 0.06196420269353901
+        },
+        "mimicry_auc": {
+          "mean": 0.542047817047817,
+          "std": 0.04786628577663342
+        },
+        "drop_pct": -1.01
+      },
+      "ASI05": {
+        "baseline_auc": {
+          "mean": 0.9891891891891891,
+          "std": 0.00806132888579683
+        },
+        "mimicry_auc": {
+          "mean": 0.8465176715176715,
+          "std": 0.028834492220516914
+        },
+        "drop_pct": 14.42
+      },
+      "ASI09": {
+        "baseline_auc": {
+          "mean": 0.8460585585585585,
+          "std": 0.04509091133343252
+        },
+        "mimicry_auc": {
+          "mean": 0.7245495495495495,
+          "std": 0.0429132373263743
+        },
+        "drop_pct": 14.36
+      },
+      "ASI10": {
+        "baseline_auc": {
+          "mean": 0.7333333333333334,
+          "std": 0.037980012278618816
+        },
+        "mimicry_auc": {
+          "mean": 0.6471846846846847,
+          "std": 0.036042369938853756
+        },
+        "drop_pct": 11.75
+      }
+    }
+  }
+}

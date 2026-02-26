@@ -1559,13 +1559,741 @@ def experiment_8():
     return results
 
 
+def experiment_9():
+    """Adversarial evasion testing.
+
+    Tests three evasion strategies against UBFS-based monitoring:
+    9A: Feature clamping — cap anomalous features at normal thresholds
+    9B: Gradual escalation — interpolate from normal to anomalous
+    9C: Mimicry — copy nearest normal neighbor, keep attack payload
+
+    Formalizes the 'boiling frog' pattern from Paper 1 into a
+    measurable evasion framework for AI agent monitoring.
+    """
+    print("\n" + "=" * 60)
+    print("EXPERIMENT 9: Adversarial Evasion Testing")
+    print("=" * 60)
+
+    from scipy.spatial.distance import cdist
+
+    trail = load_trail_dataset()
+    base_traces = trail["traces"]
+    print(f"  Using {len(base_traces)} TRAIL traces as base")
+
+    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
+
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
+        ),
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
+        ),
+    }
+
+    results = {"clamping": {}, "escalation": {}, "mimicry": {}}
+
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        clamp_per_cat = {cat: [] for cat in categories}
+        mimicry_per_cat = {cat: [] for cat in categories}
+        escalation_per_cat = {cat: [] for cat in categories}
+
+        for seed in SEEDS:
+            print(f"    seed={seed}...", end=" ", flush=True)
+
+            # Generate baseline anomalies
+            mixed, labels, owasp_cats = generate_anomalous_traces(
+                base_traces,
+                anomaly_ratio=0.3,
+                categories=categories,
+                seed=seed,
+            )
+
+            extractor = AgentTraceFeatureExtractor()
+            X, ids, ts = extractor.extract_batch(mixed)
+            normalizer = UBFSNormalizer(method="zscore")
+            X = normalizer.fit_transform(X)
+
+            normal_mask = labels == 0
+            X_normal = X[normal_mask]
+            X_train = X_normal.copy()
+
+            # Train model on normal data
+            if name == "LSTMAutoencoder":
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train[:, np.newaxis, :])
+            else:
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train)
+
+            # --- Baseline scores ---
+            if name == "LSTMAutoencoder":
+                baseline_scores = model.score(
+                    X[:, np.newaxis, :]
+                )
+            else:
+                baseline_scores = model.score(X)
+
+            normal_cat_mask = np.array([
+                c == "" for c in owasp_cats
+            ])
+
+            # --- 9A: Feature clamping ---
+            thresholds = np.percentile(X_normal, 95, axis=0)
+            X_clamped = X.copy()
+            anom_idx = np.where(labels == 1)[0]
+            for i in anom_idx:
+                X_clamped[i] = np.minimum(
+                    X_clamped[i], thresholds
+                )
+
+            if name == "LSTMAutoencoder":
+                clamped_scores = model.score(
+                    X_clamped[:, np.newaxis, :]
+                )
+            else:
+                clamped_scores = model.score(X_clamped)
+
+            # --- 9C: Mimicry ---
+            # For each anomalous sample, find nearest normal
+            # neighbor and replace all features except privilege
+            # (dim 19, the last one)
+            X_mimicry = X.copy()
+            if len(X_normal) > 0 and len(anom_idx) > 0:
+                dists = cdist(
+                    X[anom_idx], X_normal, metric="euclidean"
+                )
+                nn_idx = np.argmin(dists, axis=1)
+                for j, ai in enumerate(anom_idx):
+                    X_mimicry[ai, :19] = X_normal[
+                        nn_idx[j], :19
+                    ]
+
+            if name == "LSTMAutoencoder":
+                mimicry_scores = model.score(
+                    X_mimicry[:, np.newaxis, :]
+                )
+            else:
+                mimicry_scores = model.score(X_mimicry)
+
+            # Per-category metrics for clamping and mimicry
+            for cat in categories:
+                cat_mask = np.array([
+                    c == cat for c in owasp_cats
+                ])
+                eval_mask = cat_mask | normal_cat_mask
+                cat_y = np.zeros_like(labels)
+                cat_y[cat_mask] = 1
+
+                if cat_y[eval_mask].sum() > 0:
+                    base_m = compute_metrics(
+                        cat_y[eval_mask],
+                        baseline_scores[eval_mask],
+                    )
+                    clamp_m = compute_metrics(
+                        cat_y[eval_mask],
+                        clamped_scores[eval_mask],
+                    )
+                    mim_m = compute_metrics(
+                        cat_y[eval_mask],
+                        mimicry_scores[eval_mask],
+                    )
+                    clamp_per_cat[cat].append({
+                        "baseline_auc": base_m.auc_roc,
+                        "clamped_auc": clamp_m.auc_roc,
+                    })
+                    mimicry_per_cat[cat].append({
+                        "baseline_auc": base_m.auc_roc,
+                        "mimicry_auc": mim_m.auc_roc,
+                    })
+
+            # --- 9B: Gradual escalation ---
+            # For each category, pick a representative anomalous
+            # profile and interpolate from normal mean
+            normal_mean = X_normal.mean(axis=0)
+            for cat in categories:
+                cat_idx = [
+                    i for i, c in enumerate(owasp_cats)
+                    if c == cat
+                ]
+                if not cat_idx:
+                    continue
+                # Use the mean anomalous profile for this category
+                anom_profile = X[cat_idx].mean(axis=0)
+
+                n_steps_list = [5, 10, 20, 50]
+                detection_step = n_steps_list[-1]
+                alpha_at_detection = 1.0
+
+                for n_steps in n_steps_list:
+                    found = False
+                    for step in range(n_steps + 1):
+                        alpha = step / n_steps
+                        interp = (
+                            (1 - alpha) * normal_mean
+                            + alpha * anom_profile
+                        )
+                        interp_2d = interp.reshape(1, -1)
+
+                        if name == "LSTMAutoencoder":
+                            sc = model.score(
+                                interp_2d[:, np.newaxis, :]
+                            )
+                        else:
+                            sc = model.score(interp_2d)
+
+                        # Detection threshold: 95th percentile
+                        # of normal training scores
+                        if name == "LSTMAutoencoder":
+                            train_sc = model.score(
+                                X_train[:, np.newaxis, :]
+                            )
+                        else:
+                            train_sc = model.score(X_train)
+                        threshold = np.percentile(train_sc, 95)
+
+                        if sc[0] > threshold:
+                            detection_step = step
+                            alpha_at_detection = alpha
+                            found = True
+                            break
+
+                    if found:
+                        break
+
+                escalation_per_cat[cat].append({
+                    "detection_step": int(detection_step),
+                    "alpha_at_detection": float(
+                        alpha_at_detection
+                    ),
+                })
+
+            print("done")
+
+        # Aggregate across seeds
+        for cat in categories:
+            # Clamping
+            if clamp_per_cat[cat]:
+                base_vals = [
+                    r["baseline_auc"] for r in clamp_per_cat[cat]
+                ]
+                clamp_vals = [
+                    r["clamped_auc"] for r in clamp_per_cat[cat]
+                ]
+                base_mean = float(np.mean(base_vals))
+                clamp_mean = float(np.mean(clamp_vals))
+                drop = (
+                    (base_mean - clamp_mean) / max(base_mean, 1e-9)
+                    * 100
+                )
+                results["clamping"].setdefault(name, {})[cat] = {
+                    "baseline_auc": {
+                        "mean": base_mean,
+                        "std": float(np.std(base_vals)),
+                    },
+                    "clamped_auc": {
+                        "mean": clamp_mean,
+                        "std": float(np.std(clamp_vals)),
+                    },
+                    "drop_pct": round(drop, 2),
+                }
+
+            # Mimicry
+            if mimicry_per_cat[cat]:
+                base_vals = [
+                    r["baseline_auc"]
+                    for r in mimicry_per_cat[cat]
+                ]
+                mim_vals = [
+                    r["mimicry_auc"]
+                    for r in mimicry_per_cat[cat]
+                ]
+                base_mean = float(np.mean(base_vals))
+                mim_mean = float(np.mean(mim_vals))
+                drop = (
+                    (base_mean - mim_mean) / max(base_mean, 1e-9)
+                    * 100
+                )
+                results["mimicry"].setdefault(name, {})[cat] = {
+                    "baseline_auc": {
+                        "mean": base_mean,
+                        "std": float(np.std(base_vals)),
+                    },
+                    "mimicry_auc": {
+                        "mean": mim_mean,
+                        "std": float(np.std(mim_vals)),
+                    },
+                    "drop_pct": round(drop, 2),
+                }
+
+            # Escalation
+            if escalation_per_cat[cat]:
+                steps = [
+                    r["detection_step"]
+                    for r in escalation_per_cat[cat]
+                ]
+                alphas = [
+                    r["alpha_at_detection"]
+                    for r in escalation_per_cat[cat]
+                ]
+                results["escalation"].setdefault(
+                    name, {}
+                )[cat] = {
+                    "detection_step": {
+                        "mean": float(np.mean(steps)),
+                        "std": float(np.std(steps)),
+                    },
+                    "alpha_at_detection": {
+                        "mean": float(np.mean(alphas)),
+                        "std": float(np.std(alphas)),
+                    },
+                }
+
+    # Summary
+    print("\n" + "-" * 60)
+    print("Experiment 9 Summary — Adversarial Evasion:")
+
+    print("\n  9A: Feature Clamping (AUC-ROC drop %)")
+    header = f"  {'Model':<18s}"
+    for cat in categories:
+        header += f" {cat:>8s}"
+    print(header)
+    for name in results["clamping"]:
+        row = f"  {name:<18s}"
+        for cat in categories:
+            d = results["clamping"][name].get(
+                cat, {}
+            ).get("drop_pct", 0)
+            row += f" {d:>7.1f}%"
+        print(row)
+
+    print("\n  9B: Gradual Escalation (alpha at detection)")
+    for name in results["escalation"]:
+        row = f"  {name:<18s}"
+        for cat in categories:
+            a = results["escalation"][name].get(
+                cat, {}
+            ).get("alpha_at_detection", {}).get("mean", 0)
+            row += f" {a:>8.2f}"
+        print(row)
+
+    print("\n  9C: Mimicry (AUC-ROC drop %)")
+    for name in results["mimicry"]:
+        row = f"  {name:<18s}"
+        for cat in categories:
+            d = results["mimicry"][name].get(
+                cat, {}
+            ).get("drop_pct", 0)
+            row += f" {d:>7.1f}%"
+        print(row)
+
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "experiment_9_adversarial.json"
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2, default=str)
+
+    print(f"\nResults saved to {out_path}")
+    return results
+
+
+def experiment_10():
+    """Temporal dynamics: window ablation on agent traces.
+
+    Tests whether the optimal monitoring window size transfers
+    across domains. Paper 1 showed 7-day windows outperform
+    14/30-day for insider detection. If agent traces show an
+    analogous pattern, that's a structural insight: early warning
+    signals are more predictive than full histories.
+
+    Window sizes: 5, 10, 20 spans, and full trace.
+    Datasets: TRAIL and ATBench.
+    """
+    print("\n" + "=" * 60)
+    print("EXPERIMENT 10: Temporal Window Ablation")
+    print("=" * 60)
+
+    from src.data.atbench_loader import load_atbench
+
+    trail = load_trail_dataset()
+    base_traces = trail["traces"]
+    y_trail = get_trail_labels(trail["annotations"])
+    print(f"  TRAIL: {len(base_traces)} traces")
+
+    print("  Loading ATBench...")
+    atbench = load_atbench()
+
+    windows = [5, 10, 20, None]  # None = full trace
+    window_labels = ["5_spans", "10_spans", "20_spans", "full"]
+
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
+        ),
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
+        ),
+    }
+
+    results = {"TRAIL": {}, "ATBench": {}, "optimal_window": {}}
+
+    datasets = [
+        (
+            "TRAIL", base_traces, y_trail,
+        ),
+        (
+            "ATBench",
+            atbench["trajectories"],
+            atbench["labels"],
+        ),
+    ]
+
+    for ds_name, traces, y in datasets:
+        print(f"\n  --- {ds_name} ---")
+        results[ds_name] = {}
+
+        for name, (cls, kwargs) in models_spec.items():
+            print(f"  {name}:")
+            results[ds_name][name] = {}
+
+            for w, w_label in zip(windows, window_labels):
+                seed_results = []
+
+                for seed in SEEDS:
+                    extractor = AgentTraceFeatureExtractor()
+                    X, ids, ts = extractor.extract_batch(
+                        traces, max_spans=w
+                    )
+                    normalizer = UBFSNormalizer(method="zscore")
+                    X = normalizer.fit_transform(X)
+
+                    normal_mask = y == 0
+                    X_train = X[normal_mask]
+
+                    if len(X_train) == 0:
+                        continue
+
+                    if name == "LSTMAutoencoder":
+                        model = cls(**{**kwargs, "seed": seed})
+                        model.fit(X_train[:, np.newaxis, :])
+                        scores = model.score(
+                            X[:, np.newaxis, :]
+                        )
+                    else:
+                        model = cls(**{**kwargs, "seed": seed})
+                        model.fit(X_train)
+                        scores = model.score(X)
+
+                    m = compute_metrics(y, scores)
+                    seed_results.append(m.to_dict())
+
+                if seed_results:
+                    agg = _aggregate_seeds(seed_results)
+                    results[ds_name][name][w_label] = {
+                        "auc_roc_mean": agg["auc_roc"]["mean"],
+                        "auc_roc_std": agg["auc_roc"]["std"],
+                    }
+                    print(
+                        f"    {w_label}: AUC-ROC="
+                        f"{agg['auc_roc']['mean']:.4f} "
+                        f"(+/- {agg['auc_roc']['std']:.4f})"
+                    )
+
+    # Find optimal window per model per dataset
+    results["optimal_window"] = {
+        "TRAIL": {},
+        "ATBench": {},
+        "CERT_reference": "7_days",
+    }
+    for ds_name in ["TRAIL", "ATBench"]:
+        for name in models_spec:
+            best_label = "full"
+            best_auc = 0.0
+            for w_label in window_labels:
+                auc = results[ds_name].get(name, {}).get(
+                    w_label, {}
+                ).get("auc_roc_mean", 0)
+                if auc > best_auc:
+                    best_auc = auc
+                    best_label = w_label
+            results["optimal_window"][ds_name][name] = (
+                best_label
+            )
+
+    # Summary
+    print("\n" + "-" * 60)
+    print("Experiment 10 Summary — Temporal Window Ablation:")
+
+    for ds_name in ["TRAIL", "ATBench"]:
+        print(f"\n  {ds_name}:")
+        header = f"  {'Model':<18s}"
+        for w_label in window_labels:
+            header += f" {w_label:>10s}"
+        header += f" {'optimal':>10s}"
+        print(header)
+        for name in models_spec:
+            row = f"  {name:<18s}"
+            for w_label in window_labels:
+                v = results[ds_name].get(name, {}).get(
+                    w_label, {}
+                ).get("auc_roc_mean", 0)
+                row += f" {v:>10.4f}"
+            opt = results["optimal_window"][ds_name].get(
+                name, "?"
+            )
+            row += f" {opt:>10s}"
+            print(row)
+
+    # Cross-reference with Paper 1
+    print("\n  Cross-reference with Paper 1:")
+    print("  Paper 1: 7-day optimal (23% of 30-day max)")
+    for ds_name in ["TRAIL", "ATBench"]:
+        for name in ["IsolationForest"]:
+            opt = results["optimal_window"][ds_name].get(
+                name, "full"
+            )
+            print(f"  {ds_name} {name}: optimal = {opt}")
+
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "experiment_10_temporal.json"
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2, default=str)
+
+    print(f"\nResults saved to {out_path}")
+    return results
+
+
+def experiment_11():
+    """MITRE ATLAS taxonomy mapping.
+
+    Tests whether UBFS detection generalizes beyond OWASP to the
+    MITRE ATLAS adversarial ML threat taxonomy. Maps 5 ATLAS
+    techniques to UBFS perturbation profiles and evaluates
+    detection per technique.
+
+    ATLAS techniques:
+        AML.T0044 - Full Model Replication
+        AML.T0048 - Model Extraction via API
+        AML.T0043 - Craft Adversarial Data
+        AML.T0025 - Exfiltration via ML Inference API
+        AML.T0042 - Verify Attack
+    """
+    print("\n" + "=" * 60)
+    print("EXPERIMENT 11: MITRE ATLAS Mapping")
+    print("=" * 60)
+
+    trail = load_trail_dataset()
+    base_traces = trail["traces"]
+    print(f"  Using {len(base_traces)} TRAIL traces as base")
+
+    atlas_categories = [
+        "AML_T0044_REPLICATION",
+        "AML_T0048_EXTRACTION",
+        "AML_T0043_ADVERSARIAL",
+        "AML_T0025_EXFILTRATION",
+        "AML_T0042_VERIFY",
+    ]
+
+    models_spec = {
+        "IsolationForest": (
+            IsolationForestDetector,
+            {"n_estimators": 200, "contamination": "auto"},
+        ),
+        "LSTMAutoencoder": (
+            LSTMAutoencoderDetector,
+            {"epochs": 30, "batch_size": 16, "device": "cpu",
+             "verbose": False},
+        ),
+        "DeepClustering": (
+            DeepClusteringDetector,
+            {"pretrain_epochs": 30, "batch_size": 16},
+        ),
+    }
+
+    results = {"atlas_detection_matrix": {}, "cross_taxonomy": {}}
+
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        seed_per_cat = {cat: [] for cat in atlas_categories}
+
+        for seed in SEEDS:
+            print(f"    seed={seed}...", end=" ", flush=True)
+            mixed, labels, owasp_cats = generate_anomalous_traces(
+                base_traces,
+                anomaly_ratio=0.3,
+                categories=atlas_categories,
+                seed=seed,
+            )
+
+            extractor = AgentTraceFeatureExtractor()
+            X, ids, ts = extractor.extract_batch(mixed)
+            normalizer = UBFSNormalizer(method="zscore")
+            X = normalizer.fit_transform(X)
+
+            normal_mask = labels == 0
+            X_train = X[normal_mask]
+
+            if name == "LSTMAutoencoder":
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train[:, np.newaxis, :])
+                scores = model.score(X[:, np.newaxis, :])
+            else:
+                model = cls(**{**kwargs, "seed": seed})
+                model.fit(X_train)
+                scores = model.score(X)
+
+            normal_cat_mask = np.array([
+                c == "" for c in owasp_cats
+            ])
+
+            line_parts = []
+            for cat in atlas_categories:
+                cat_mask = np.array([
+                    c == cat for c in owasp_cats
+                ])
+                eval_mask = cat_mask | normal_cat_mask
+                cat_y = np.zeros_like(labels)
+                cat_y[cat_mask] = 1
+
+                if cat_y[eval_mask].sum() > 0:
+                    cat_m = compute_metrics(
+                        cat_y[eval_mask], scores[eval_mask]
+                    )
+                    seed_per_cat[cat].append(cat_m.to_dict())
+                    short = cat.replace("AML_", "")
+                    line_parts.append(
+                        f"{short}={cat_m.auc_roc:.3f}"
+                    )
+
+            print(" ".join(line_parts))
+
+        # Aggregate per-category
+        agg_cats = {}
+        for cat in atlas_categories:
+            if seed_per_cat[cat]:
+                agg_cats[cat] = {}
+                for key in seed_per_cat[cat][0]:
+                    vals = [
+                        r[key] for r in seed_per_cat[cat]
+                    ]
+                    agg_cats[cat][key] = {
+                        "mean": float(np.mean(vals)),
+                        "std": float(np.std(vals)),
+                    }
+
+        results["atlas_detection_matrix"][name] = agg_cats
+
+        for cat in atlas_categories:
+            if cat in agg_cats:
+                m = agg_cats[cat]["auc_roc"]["mean"]
+                s = agg_cats[cat]["auc_roc"]["std"]
+                print(
+                    f"    {cat}: AUC-ROC={m:.4f} "
+                    f"(+/- {s:.4f})"
+                )
+
+    # Cross-taxonomy comparison
+    # OWASP reference (from Exp 3 expected results)
+    owasp_tiers = {
+        "strong": ["ASI05", "ASI09", "ASI10"],
+        "moderate": ["ASI01"],
+        "blind_spot": ["ASI02"],
+    }
+
+    atlas_tiers = {"strong": [], "moderate": [], "blind_spot": []}
+    # Use IF as representative for tier assignment
+    if_results = results["atlas_detection_matrix"].get(
+        "IsolationForest", {}
+    )
+    for cat in atlas_categories:
+        auc = if_results.get(cat, {}).get(
+            "auc_roc", {}
+        ).get("mean", 0)
+        if auc >= 0.80:
+            atlas_tiers["strong"].append(cat)
+        elif auc >= 0.60:
+            atlas_tiers["moderate"].append(cat)
+        else:
+            atlas_tiers["blind_spot"].append(cat)
+
+    results["cross_taxonomy"] = {
+        "strong": {
+            "owasp": owasp_tiers["strong"],
+            "atlas": atlas_tiers["strong"],
+        },
+        "moderate": {
+            "owasp": owasp_tiers["moderate"],
+            "atlas": atlas_tiers["moderate"],
+        },
+        "blind_spot": {
+            "owasp": owasp_tiers["blind_spot"],
+            "atlas": atlas_tiers["blind_spot"],
+        },
+    }
+
+    # Summary
+    print("\n" + "-" * 60)
+    print("Experiment 11 Summary — ATLAS Detection Matrix:")
+    header = f"  {'Model':<18s}"
+    for cat in atlas_categories:
+        short = cat.replace("AML_", "").replace(
+            "_REPLICATION", ""
+        ).replace("_EXTRACTION", "").replace(
+            "_ADVERSARIAL", ""
+        ).replace("_EXFILTRATION", "").replace(
+            "_VERIFY", ""
+        )
+        header += f" {short:>8s}"
+    print(header)
+    print("  " + "-" * 60)
+    for name in results["atlas_detection_matrix"]:
+        row = f"  {name:<18s}"
+        for cat in atlas_categories:
+            v = results["atlas_detection_matrix"][name].get(
+                cat, {}
+            ).get("auc_roc", {}).get("mean", 0)
+            row += f" {v:>8.4f}"
+        print(row)
+
+    print("\n  Cross-Taxonomy Comparison:")
+    for tier in ["strong", "moderate", "blind_spot"]:
+        owasp_list = results["cross_taxonomy"][tier]["owasp"]
+        atlas_list = results["cross_taxonomy"][tier]["atlas"]
+        tier_label = tier.replace("_", " ").title()
+        print(f"  {tier_label:>12s}: OWASP={owasp_list}, "
+              f"ATLAS={atlas_list}")
+
+    TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = TABLES_DIR / "experiment_11_atlas.json"
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2, default=str)
+
+    print(f"\nResults saved to {out_path}")
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Threat-to-Governance Pipeline Experiments"
     )
     parser.add_argument(
-        "--experiment", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8],
-        help="Run specific experiment (1-8)"
+        "--experiment", type=int,
+        choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        help="Run specific experiment (1-11)"
     )
     parser.add_argument(
         "--all", action="store_true",
@@ -1606,6 +2334,12 @@ def main():
             all_results[7] = experiment_7()
         elif exp == 8:
             all_results[8] = experiment_8()
+        elif exp == 9:
+            all_results[9] = experiment_9()
+        elif exp == 10:
+            all_results[10] = experiment_10()
+        elif exp == 11:
+            all_results[11] = experiment_11()
         elapsed = time.time() - t0
         print(f"\nExperiment {exp} completed in {elapsed:.1f}s")
 

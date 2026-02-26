@@ -111,6 +111,50 @@ OWASP_PROFILES: Dict[str, Dict[str, float]] = {
         "repetition_add": 0.1,
         "description": "Hydra Cluster Per-Account (distributed)",
     },
+    # --- MITRE ATLAS technique profiles (Experiment 11) ---
+    "AML_T0044_REPLICATION": {
+        # Full model replication: systematic querying, high extraction
+        "primary_event_count_mult": 10.0,
+        "data_volume_mult": 15.0,
+        "event_rate_add": 5.0,
+        "resource_breadth_mult": 3.0,
+        "action_entropy_mult": 0.3,
+        "repetition_add": 0.6,
+        "description": "Full Model Replication (ATLAS AML.T0044)",
+    },
+    "AML_T0048_EXTRACTION": {
+        # Model extraction via API: repeated similar queries
+        "primary_event_count_mult": 8.0,
+        "action_entropy_mult": 0.4,
+        "repetition_add": 0.5,
+        "data_volume_mult": 10.0,
+        "resource_breadth_mult": 1.5,
+        "description": "Model Extraction via API (ATLAS AML.T0048)",
+    },
+    "AML_T0043_ADVERSARIAL": {
+        # Craft adversarial data: data generation patterns
+        "data_volume_mult": 8.0,
+        "resource_breadth_mult": 5.0,
+        "action_entropy_mult": 0.6,
+        "transition_novelty_mult": 1.5,
+        "description": "Craft Adversarial Data (ATLAS AML.T0043)",
+    },
+    "AML_T0025_EXFILTRATION": {
+        # Exfiltration via ML inference API: volume + privilege
+        "data_volume_mult": 12.0,
+        "privilege_add": 2.0,
+        "resource_breadth_mult": 2.0,
+        "event_rate_add": 3.0,
+        "description": "Exfiltration via Inference API (ATLAS AML.T0025)",
+    },
+    "AML_T0042_VERIFY": {
+        # Verify attack: unusual test patterns
+        "action_entropy_mult": 1.5,
+        "transition_novelty_mult": 2.0,
+        "peer_distance_add": 1.5,
+        "event_rate_add": 1.5,
+        "description": "Verify Attack (ATLAS AML.T0042)",
+    },
 }
 
 
@@ -277,6 +321,94 @@ def _perturb_trace(
             # No span duplication. The attack is invisible
             # at the individual account level.
             pass
+
+    elif owasp_category.startswith("AML_T"):
+        if owasp_category == "AML_T0044_REPLICATION":
+            # Systematic querying for model replication
+            n_repeat = rng.randint(8, 15)
+            original_spans = list(spans)
+            for i in range(n_repeat):
+                for span in original_spans:
+                    dup = copy.deepcopy(span)
+                    dup["span_id"] = (
+                        f"repl_{rng.randint(0, 99999)}"
+                    )
+                    dup["name"] = (
+                        f"execute_query_{rng.choice(['systematic', 'exhaustive', 'enumerate', 'replicate'])}"
+                    )
+                    spans.append(dup)
+
+        elif owasp_category == "AML_T0048_EXTRACTION":
+            # Repeated similar queries for model extraction
+            n_repeat = rng.randint(6, 12)
+            original_spans = list(spans)
+            for i in range(n_repeat):
+                for span in original_spans:
+                    dup = copy.deepcopy(span)
+                    dup["span_id"] = (
+                        f"extract_{rng.randint(0, 99999)}"
+                    )
+                    dup["name"] = (
+                        f"execute_api_query_{rng.choice(['extract', 'probe', 'sample', 'infer'])}"
+                    )
+                    spans.append(dup)
+
+        elif owasp_category == "AML_T0043_ADVERSARIAL":
+            # Diverse data crafting across many resources
+            n_repeat = rng.randint(5, 10)
+            domains = [
+                "craft_input", "generate_adversarial",
+                "perturb_sample", "tool_call_search",
+                "mutate_data", "explore_boundary",
+            ]
+            original_spans = list(spans)
+            for i in range(n_repeat):
+                for span in original_spans:
+                    dup = copy.deepcopy(span)
+                    dup["span_id"] = (
+                        f"adv_{rng.randint(0, 99999)}"
+                    )
+                    dup["name"] = rng.choice(domains)
+                    spans.append(dup)
+
+        elif owasp_category == "AML_T0025_EXFILTRATION":
+            # High-volume extraction with privilege signals
+            n_repeat = rng.randint(8, 14)
+            original_spans = list(spans)
+            for i in range(n_repeat):
+                for span in original_spans:
+                    dup = copy.deepcopy(span)
+                    dup["span_id"] = (
+                        f"exfil_{rng.randint(0, 99999)}"
+                    )
+                    dup["name"] = (
+                        f"execute_{rng.choice(['extract_weights', 'dump_embeddings', 'export_model', 'read_internal'])}"
+                    )
+                    attrs = dup.get(
+                        "span_attributes",
+                        dup.get("attributes", {}),
+                    )
+                    if isinstance(attrs, dict):
+                        attrs["privilege_level"] = "elevated"
+                    spans.append(dup)
+
+        elif owasp_category == "AML_T0042_VERIFY":
+            # Unusual test patterns with novel sequences
+            n_repeat = rng.randint(3, 7)
+            test_types = [
+                "verify_exploit", "action_test_boundary",
+                "execute_probe_response",
+                "function_validate_attack",
+            ]
+            original_spans = list(spans)
+            for i in range(n_repeat):
+                for span in original_spans:
+                    dup = copy.deepcopy(span)
+                    dup["span_id"] = (
+                        f"verify_{rng.randint(0, 99999)}"
+                    )
+                    dup["name"] = rng.choice(test_types)
+                    spans.append(dup)
 
     perturbed["spans"] = spans
     return perturbed

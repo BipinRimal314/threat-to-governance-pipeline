@@ -1,0 +1,127 @@
+{
+  "TRAIL": {
+    "IsolationForest": {
+      "5_spans": {
+        "auc_roc_mean": 0.5432291666666667,
+        "auc_roc_std": 0.0048611111111110895
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.5814236111111111,
+        "auc_roc_std": 0.020316209300445486
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.5050347222222223,
+        "auc_roc_std": 0.006777507394424719
+      },
+      "full": {
+        "auc_roc_mean": 0.5774305555555556,
+        "auc_roc_std": 0.021144949580145907
+      }
+    },
+    "LSTMAutoencoder": {
+      "5_spans": {
+        "auc_roc_mean": 0.47881944444444446,
+        "auc_roc_std": 0.0031823442326082514
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.5368055555555555,
+        "auc_roc_std": 0.008603827564836037
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.509375,
+        "auc_roc_std": 0.0037396977827322893
+      },
+      "full": {
+        "auc_roc_mean": 0.6854166666666666,
+        "auc_roc_std": 0.011165232771398246
+      }
+    },
+    "DeepClustering": {
+      "5_spans": {
+        "auc_roc_mean": 0.8416666666666666,
+        "auc_roc_std": 0.016882285807143353
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.8291666666666666,
+        "auc_roc_std": 0.023282020297555852
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.8506944444444444,
+        "auc_roc_std": 0.05257866314296357
+      },
+      "full": {
+        "auc_roc_mean": 0.896875,
+        "auc_roc_std": 0.021080707273139626
+      }
+    }
+  },
+  "ATBench": {
+    "IsolationForest": {
+      "5_spans": {
+        "auc_roc_mean": 0.7830496,
+        "auc_roc_std": 0.0016390936031843815
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.8375600000000001,
+        "auc_roc_std": 0.0003415166174580491
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.8375600000000001,
+        "auc_roc_std": 0.0003415166174580491
+      },
+      "full": {
+        "auc_roc_mean": 0.8375600000000001,
+        "auc_roc_std": 0.0003415166174580491
+      }
+    },
+    "LSTMAutoencoder": {
+      "5_spans": {
+        "auc_roc_mean": 0.7201568,
+        "auc_roc_std": 0.1974978952783042
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.7808143999999999,
+        "auc_roc_std": 0.07212660697856238
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.7808143999999999,
+        "auc_roc_std": 0.07212660697856238
+      },
+      "full": {
+        "auc_roc_mean": 0.7808143999999999,
+        "auc_roc_std": 0.07212660697856238
+      }
+    },
+    "DeepClustering": {
+      "5_spans": {
+        "auc_roc_mean": 0.7011392,
+        "auc_roc_std": 0.15571833950103628
+      },
+      "10_spans": {
+        "auc_roc_mean": 0.8904880000000001,
+        "auc_roc_std": 0.05493294052933992
+      },
+      "20_spans": {
+        "auc_roc_mean": 0.8904880000000001,
+        "auc_roc_std": 0.05493294052933992
+      },
+      "full": {
+        "auc_roc_mean": 0.8904880000000001,
+        "auc_roc_std": 0.05493294052933992
+      }
+    }
+  },
+  "optimal_window": {
+    "TRAIL": {
+      "IsolationForest": "10_spans",
+      "LSTMAutoencoder": "full",
+      "DeepClustering": "full"
+    },
+    "ATBench": {
+      "IsolationForest": "10_spans",
+      "LSTMAutoencoder": "10_spans",
+      "DeepClustering": "10_spans"
+    },
+    "CERT_reference": "7_days"
+  }
+}
