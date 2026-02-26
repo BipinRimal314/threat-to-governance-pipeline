@@ -1,0 +1,116 @@
+# Results API — Deployment + Service + Ingress
+#
+# The Deployment tells K8s: "run 2 copies of this container."
+# The Service gives them a stable internal address (DNS name).
+# The Ingress routes external traffic to the Service.
+#
+# If one pod dies, K8s restarts it automatically. If load increases,
+# scale with: kubectl scale deployment results-api --replicas=4 -n ttgp
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: results-api
+  namespace: ttgp
+  labels:
+    app: results-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: results-api
+  template:
+    metadata:
+      labels:
+        app: results-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/bipinrimal314/ttgp-api:latest
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          # Mount experiment results from shared storage
+          volumeMounts:
+            - name: results-volume
+              mountPath: /app/results
+              readOnly: true
+          # Resource limits prevent one pod from starving others.
+          # requests = guaranteed minimum. limits = hard ceiling.
+          resources:
+            requests:
+              cpu: "100m"       # 0.1 CPU core
+              memory: "128Mi"   # 128 MB RAM
+            limits:
+              cpu: "500m"       # 0.5 CPU core
+              memory: "512Mi"   # 512 MB RAM
+          # K8s checks this endpoint to know if the pod is alive.
+          # If it fails 3 times, K8s kills and restarts the pod.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          # K8s checks this before sending traffic to the pod.
+          # A pod that's alive but not ready won't receive requests.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: results-volume
+          persistentVolumeClaim:
+            claimName: results-pvc
+
+---
+# Service — stable internal DNS name for the API pods.
+# Other pods in the cluster reach the API at: results-api.ttgp.svc.cluster.local
+# K8s load-balances traffic across all healthy pods automatically.
+apiVersion: v1
+kind: Service
+metadata:
+  name: results-api
+  namespace: ttgp
+  labels:
+    app: results-api
+spec:
+  selector:
+    app: results-api
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Ingress — routes external HTTP traffic to the Service.
+# This is the "front door." External users hit the Ingress,
+# the Ingress routes to the Service, the Service load-balances
+# across pods.
+#
+# Works with any Ingress controller (nginx, Traefik, Envoy, etc.)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: results-api
+  namespace: ttgp
+  annotations:
+    # Rate limiting: 10 requests/second per IP
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ttgp.bipinrimal.com.np
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: results-api
+                port:
+                  number: 80

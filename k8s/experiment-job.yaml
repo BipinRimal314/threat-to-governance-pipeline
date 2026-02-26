@@ -1,0 +1,86 @@
+# Experiment Job — runs experiments as a Kubernetes Job.
+#
+# A Job is different from a Deployment:
+#   - Deployment: "run this forever, restart if it dies"
+#   - Job: "run this once to completion, then stop"
+#
+# Experiments are Jobs because they have a defined end state.
+# The API server is a Deployment because it should run forever.
+#
+# Usage:
+#   kubectl apply -f k8s/experiment-job.yaml
+#   kubectl logs job/experiment-runner -n ttgp -f   # Watch progress
+#   kubectl get jobs -n ttgp                         # Check status
+#
+# To run a different experiment, change the args below and re-apply.
+# Or use kubectl create job from a template:
+#   kubectl create job exp-9 --from=job/experiment-runner -n ttgp \
+#     -- python run_experiments.py --experiment 9
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: experiment-runner
+  namespace: ttgp
+  labels:
+    app: experiment-runner
+spec:
+  # Don't retry on failure — experiments should be debugged, not retried blindly
+  backoffLimit: 0
+  # Clean up completed job after 1 hour (keeps the cluster tidy)
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: experiment-runner
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: runner
+          image: ghcr.io/bipinrimal314/ttgp:latest
+          args:
+            - "python"
+            - "run_experiments.py"
+            - "--experiment"
+            - "9"
+          volumeMounts:
+            # Results persist to shared storage — the API can serve them
+            - name: results-volume
+              mountPath: /app/results
+            # CMU-CERT data (read-only)
+            - name: cert-data
+              mountPath: /app/data
+              readOnly: true
+            # HuggingFace cache
+            - name: hf-cache
+              mountPath: /app/.cache/huggingface
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-credentials
+                  key: token
+                  optional: true
+          # Experiments are compute-heavy: request GPU + more CPU/RAM
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+            limits:
+              cpu: "4"
+              memory: "16Gi"
+              # GPU: uncomment for NVIDIA GPU nodes
+              # nvidia.com/gpu: 1
+      volumes:
+        - name: results-volume
+          persistentVolumeClaim:
+            claimName: results-pvc
+        - name: cert-data
+          persistentVolumeClaim:
+            claimName: cert-data-pvc
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: hf-cache-pvc

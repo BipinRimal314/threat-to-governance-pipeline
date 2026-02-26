@@ -1,0 +1,9 @@
+# Namespace isolates all pipeline resources from other workloads.
+# Think of it as a folder for your Kubernetes objects.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ttgp
+  labels:
+    app.kubernetes.io/name: threat-to-governance-pipeline
+    app.kubernetes.io/part-of: ai-governance-research

@@ -1,0 +1,53 @@
+# Persistent Volume Claims — storage that survives pod restarts.
+#
+# Without PVCs, data inside a container vanishes when the container stops.
+# PVCs request durable storage from the cluster. The cluster's StorageClass
+# decides HOW that storage is provided (local disk, NFS, cloud EBS, etc.)
+#
+# Three PVCs:
+#   results-pvc    — experiment outputs (JSON, figures). Read-write.
+#   cert-data-pvc  — CMU-CERT dataset. Read-only after initial load.
+#   hf-cache-pvc   — HuggingFace model/dataset cache. Avoids re-downloads.
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: results-pvc
+  namespace: ttgp
+spec:
+  accessModes:
+    # ReadWriteMany: multiple pods can read AND write simultaneously.
+    # Needed because experiment jobs write results that the API reads.
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cert-data-pvc
+  namespace: ttgp
+spec:
+  accessModes:
+    # ReadOnlyMany: multiple pods can read, but nobody writes.
+    # The dataset is loaded once and never modified.
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hf-cache-pvc
+  namespace: ttgp
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi

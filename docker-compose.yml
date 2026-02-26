@@ -1,0 +1,107 @@
+# =============================================================================
+# Threat-to-Governance Pipeline — Docker Compose
+#
+# Services:
+#   experiment-runner  — Runs anomaly detection experiments (GPU optional)
+#   results-api        — FastAPI server exposing experiment results as REST API
+#   results-dashboard  — Nginx serving static figures and reports
+#
+# Usage:
+#   docker compose up results-api          # Start API server
+#   docker compose run experiment-runner \
+#     python run_experiments.py --experiment 5    # Run specific experiment
+#   docker compose up                      # Start API + dashboard
+#
+# GPU (requires nvidia-container-toolkit):
+#   docker compose --profile gpu run experiment-runner-gpu \
+#     python run_experiments.py --all --cert
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Experiment Runner — CPU
+  # ---------------------------------------------------------------------------
+  experiment-runner:
+    build:
+      context: .
+      target: app
+    image: ttgp:latest
+    volumes:
+      # Persist results across container restarts
+      - ./results:/app/results
+      # Mount CMU-CERT data from sibling directory (read-only)
+      - ../insider-detection/data:/app/data:ro
+      # HuggingFace cache — avoid re-downloading TRAIL/TRACE/ATBench
+      - hf-cache:/app/.cache/huggingface
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN:-}
+    # Default: run all experiments (override with docker compose run)
+    command: ["python", "run_experiments.py", "--all", "--cert"]
+
+  # ---------------------------------------------------------------------------
+  # Experiment Runner — GPU (NVIDIA)
+  # Activate with: docker compose --profile gpu run experiment-runner-gpu
+  # ---------------------------------------------------------------------------
+  experiment-runner-gpu:
+    build:
+      context: .
+      target: app
+    image: ttgp:latest
+    profiles: ["gpu"]
+    volumes:
+      - ./results:/app/results
+      - ../insider-detection/data:/app/data:ro
+      - hf-cache:/app/.cache/huggingface
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_TOKEN=${HF_TOKEN:-}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: ["python", "run_experiments.py", "--all", "--cert"]
+
+  # ---------------------------------------------------------------------------
+  # Results API — FastAPI serving experiment results as JSON
+  # ---------------------------------------------------------------------------
+  results-api:
+    build:
+      context: .
+      target: api
+    image: ttgp-api:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./results:/app/results:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Results Dashboard — Static file server for figures and reports
+  # ---------------------------------------------------------------------------
+  results-dashboard:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./results/figures:/usr/share/nginx/html/figures:ro
+      - ./results/tables:/usr/share/nginx/html/tables:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      results-api:
+        condition: service_healthy
+
+volumes:
+  hf-cache:
+    driver: local
