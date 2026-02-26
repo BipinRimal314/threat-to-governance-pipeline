@@ -21,6 +21,10 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{mitre2024atlas}
+{MITRE Corporation}, ``{MITRE ATLAS} --- adversarial threat landscape for {AI}
+  systems,'' \url{https://atlas.mitre.org/}, 2024, accessed: 2026-02-27.
+
 \bibitem{homoliak2019insight}
 I.~Homoliak, F.~Toffalini, J.~Guarnizo, Y.~Elovici, and M.~Ochoa, ``Insight
   into insiders and it: A survey of insider threat taxonomies, analysis,
@@ -36,6 +40,13 @@ I.~Homoliak, F.~Toffalini, J.~Guarnizo, Y.~Elovici, and M.~Ochoa, ``Insight
 B.~Rimal, ``The metric that misleads: Why temporal behavioral models outperform
   static methods for insider threat detection at operational thresholds,'' in
   \emph{MSc Thesis, Coventry University}, 2026.
+
+\bibitem{anthropic2026distillation}
+{Anthropic}, ``Detecting and countering malicious uses of {Claude}: February
+  2026,''
+  \url{https://www.anthropic.com/research/detecting-malicious-uses-feb-2026},
+  2026, disclosed model distillation attacks by DeepSeek, Moonshot AI, MiniMax
+  (24,000+ accounts, 16M+ exchanges) and AI-orchestrated espionage by GTG-1002.
 
 \bibitem{salem2008survey}
 M.~B. Salem, S.~Hershkop, and S.~J. Stolfo, ``A survey of insider attack
@@ -86,6 +97,18 @@ A.~Pan, K.~Bhatia, and J.~Steinhardt, ``The effects of reward misspecification:
   Mapping and mitigating misaligned models,'' \emph{arXiv preprint
   arXiv:2201.03544}, 2022.
 
+\bibitem{atbench2026}
+{AI45Research}, ``{ATBench}: A multi-turn tool-centric safety benchmark for ai
+  agents,'' \emph{arXiv preprint arXiv:2512.24565}, 2026, available at
+  \url{https://huggingface.co/datasets/AI45Research/ATBench}.
+
+\bibitem{souly2024agentharm}
+A.~Souly, Q.~Lu, D.~Bowen, T.~Trinh, E.~Hsieh, S.~Pandey, J.~Picel, J.~Gresham,
+  S.~Telang, J.~Coda-Forno, P.~Christoffersen, P.~Abbeel, D.~Hadfield-Menell,
+  P.~Christiano \emph{et~al.}, ``A {StrongREJECT} for empty jailbreaks:
+  Evaluating the robustness of safety refusals in large language models,'' in
+  \emph{UK AI Safety Institute Technical Report}, 2024.
+
 \bibitem{zhuang2020transfer}
 F.~Zhuang, Z.~Qi, K.~Duan, D.~Xi, Y.~Zhu, H.~Zhu, H.~Xiong, and Q.~He, ``A
   comprehensive survey on transfer learning,'' \emph{Proceedings of the IEEE},
@@ -114,6 +137,12 @@ J.~Glasser and B.~Lindauer, ``Bridging the gap: A pragmatic approach to
 \bibitem{hochreiter1997lstm}
 S.~Hochreiter and J.~Schmidhuber, ``Long short-term memory,'' \emph{Neural
   computation}, vol.~9, no.~8, pp. 1735--1780, 1997.
+
+\bibitem{reimers2019sentbert}
+N.~Reimers and I.~Gurevych, ``Sentence-{BERT}: Sentence embeddings using
+  siamese {BERT}-networks,'' in \emph{Proceedings of the 2019 Conference on
+  Empirical Methods in Natural Language Processing (EMNLP)}, 2019, pp.
+  3982--3992.
 
 \bibitem{vaswani2017attention}
 A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N. Gomez,

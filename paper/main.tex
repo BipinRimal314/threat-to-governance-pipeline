@@ -30,11 +30,11 @@ rimalb@uni.coventry.ac.uk}
 
 % ============================================================================
 \begin{abstract}
-AI agent monitoring and insider threat detection share the same architecture: profile a baseline, flag deviations, encode assumptions about trust. We make this concrete across eight experiments. Using a Unified Behavioural Feature Schema (UBFS) that maps both employee activity logs and agent execution traces into a shared representation, we apply three anomaly detection models---Isolation Forest, LSTM Autoencoder, and Deep Clustering---across five domains. Cross-domain transfer works: an Isolation Forest trained on 329,000 insider threat user-days retains \textbf{97\% of detection power} on agent traces, and transfer to MCP tool-calling benchmarks exceeds within-domain performance (104.8\% retention). But the blind spots transfer too. Model distillation attacks span a detection spectrum from trivially caught (FOCUSED extraction: 0.99 AUC-ROC) to structurally invisible (HYDRA distributed: 0.54), and task decomposition---splitting a malicious objective into innocent subtasks---costs 5--6\% detection power across all models. The most persistent blind spot is Tool Misuse (ASI02), where agents use the right tools in the right order with escalated privileges. Augmenting UBFS with eight semantic features (UBFS-28) dramatically improves detection for four of five OWASP categories but \textbf{fails to close ASI02} (${\sim}$0.56 AUC-ROC). This is not a feature engineering problem---it is a structural limitation of anomaly-based monitoring. The detection models port across domains. So do their biases, and so do their blind spots.
+AI agent monitoring and insider threat detection share the same architecture: profile a baseline, flag deviations, encode assumptions about trust. We make this concrete across eleven experiments. Using a Unified Behavioural Feature Schema (UBFS) that maps both employee activity logs and agent execution traces into a shared representation, we apply three anomaly detection models---Isolation Forest, LSTM Autoencoder, and Deep Clustering---across five domains. Cross-domain transfer works: an Isolation Forest trained on 329,000 insider threat user-days retains \textbf{97\% of detection power} on agent traces, and transfer to MCP tool-calling benchmarks exceeds within-domain performance (104.8\% retention). But the blind spots transfer too. Model distillation attacks span a detection spectrum from trivially caught (FOCUSED extraction: 0.99 AUC-ROC) to structurally invisible (HYDRA distributed: 0.54), and task decomposition---splitting a malicious objective into innocent subtasks---costs 5--6\% detection power across all models. The most persistent blind spot is Tool Misuse (ASI02), where agents use the right tools in the right order with escalated privileges. Augmenting UBFS with eight semantic features (UBFS-28) dramatically improves detection for four of five OWASP categories but \textbf{fails to close ASI02} (${\sim}$0.56 AUC-ROC). Adversarial evasion testing reveals that mimicry attacks---copying a normal neighbour's features while preserving the attack payload---degrade detection by up to 25\%, with Memory Poisoning (ASI05) most vulnerable. Temporal window ablation finds that 10 spans are optimal for Isolation Forest on both TRAIL and ATBench, mirroring the 7-day window finding from insider threat detection. Mapping five MITRE ATLAS techniques~\cite{mitre2024atlas} into the UBFS confirms that the framework generalises beyond OWASP: all five techniques are strongly detectable ($>$0.93 AUC-ROC for IF/LSTM), introducing no new blind spots. The detection models port across domains. So do their biases, and so do their blind spots.
 \end{abstract}
 
 \begin{IEEEkeywords}
-AI agent monitoring, insider threat detection, anomaly detection, cross-domain transfer, behavioural feature schema, AI governance, OWASP, model distillation, task decomposition
+AI agent monitoring, insider threat detection, anomaly detection, cross-domain transfer, behavioural feature schema, AI governance, OWASP, MITRE ATLAS, adversarial evasion, model distillation
 \end{IEEEkeywords}
 
 % ============================================================================
@@ -71,6 +71,9 @@ The results are stronger than expected in one direction, and more concerning tha
     \item \textbf{Decomposition evasion}: Quantified evidence that splitting malicious objectives into innocent subtasks costs 5--6\% detection power, mirroring insider threat ``boiling frog'' escalation.
     \item \textbf{MCP transfer generalisation}: Cross-domain transfer validated on ATBench tool-calling traces, where TRAIL$\to$ATBench Isolation Forest achieves 104.8\% of within-domain performance.
     \item \textbf{UBFS-28 hybrid}: Proof that the ASI02 blind spot is structural, not a feature engineering gap---augmenting UBFS with 8 semantic dimensions improves four OWASP categories but leaves Tool Misuse at ${\sim}$0.56 AUC-ROC.
+    \item \textbf{Adversarial evasion framework}: Three evasion strategies---feature clamping, gradual escalation, and mimicry---quantifying the robustness of UBFS-based detection. Mimicry is the most effective, degrading ASI05 detection by up to 25\%.
+    \item \textbf{Temporal window transfer}: Window ablation showing 10 spans optimal for Isolation Forest on both TRAIL and ATBench, paralleling Paper~1's 7-day optimal window---a structural insight about the primacy of early warning signals.
+    \item \textbf{MITRE ATLAS mapping}: Five ATLAS adversarial ML techniques mapped to UBFS perturbation profiles, all landing in the ``strong'' detection tier ($>$0.93 AUC-ROC for IF/LSTM)---no new blind spots beyond OWASP ASI02.
 \end{enumerate}
 
 % ============================================================================
@@ -82,6 +85,8 @@ The results are stronger than expected in one direction, and more concerning tha
 \textbf{AI agent monitoring} is a younger field. The OWASP Top~10 for Agentic Applications~\cite{owasp2024asi} taxonomises risks from prompt injection to excessive agency. The TRAIL dataset~\cite{patronus2024trail} provides annotated agent execution traces with error labels. The TRACE dataset~\cite{pan2024trace} captures reward hacking in iterative self-refinement---agents that produce correct outputs through illegitimate means. Pan et~al.~\cite{pan2022effects} formalised reward misspecification as a safety concern.
 
 \textbf{Real-world AI agent attacks.} In February 2026, Anthropic disclosed two categories of attack against Claude~\cite{anthropic2026distillation}: model distillation (three Chinese AI labs created ${\sim}$24,000 fraudulent accounts and conducted 16M+ exchanges to extract capabilities) and AI-orchestrated espionage (state-sponsored group GTG-1002 used Claude Code with MCP tools as an autonomous hacking agent). The distillation attacks employed three distinct strategies---focused extraction, multi-capability probing, and chain-of-thought elicitation---plus a ``hydra cluster'' architecture distributing traffic across 20,000+ accounts. The ATBench benchmark~\cite{atbench2026} provides multi-turn, tool-centric safety scenarios with fine-grained risk categorisation, enabling evaluation on MCP-style traces. The AgentHarm dataset~\cite{souly2024agentharm} provides 440 malicious agent tasks in both direct and decomposed configurations, enabling comparison of single-turn attacks against multi-step task decomposition---the same evasion strategy used in the GTG-1002 campaign.
+
+\textbf{Adversarial ML threat taxonomies.} MITRE ATLAS~\cite{mitre2024atlas} extends the ATT\&CK framework to adversarial machine learning, cataloguing techniques from model extraction (AML.T0044, AML.T0048) and adversarial data crafting (AML.T0043) to inference API exfiltration (AML.T0025). Where OWASP ASI taxonomises \textit{agent-side} risks, ATLAS taxonomises \textit{model-side} attacks. Testing whether UBFS detects across both taxonomies determines whether the framework generalises to the broader adversarial ML landscape.
 
 \textbf{Cross-domain anomaly detection.} Transfer learning for anomaly detection is well-studied in computer vision and NLP~\cite{zhuang2020transfer}, where domain adaptation techniques align feature distributions across source and target domains. In cybersecurity, Sheatsley et~al.~\cite{sheatsley2022adversarial} demonstrated that adversarial examples transfer across network intrusion detection models, suggesting shared vulnerability structure. But transfer \textit{across} the insider-threat/agent-monitoring boundary has not been tested. The gap exists partly because the two communities use different feature representations: STIX/TAXII~\cite{stix2021} for threat intelligence, OpenTelemetry~\cite{opentelemetry2023} for distributed tracing. Our UBFS bridges these by abstracting both into shared behavioural dimensions---temporal patterns, frequency profiles, scope metrics, and deviation scores that are meaningful regardless of whether the monitored entity is human or artificial.
 
@@ -468,6 +473,103 @@ ASI02 Tool Misuse & .537 & .559 & +.023 & DC \\
 
 \textbf{Transfer degrades with UBFS-28.} Adding semantic features to cross-domain transfer (TRAIL $\to$ ATBench) reduces IF from 0.878 to 0.799 ($-0.079$) and DC from 0.737 to 0.609 ($-0.129$). The semantic dimensions are domain-specific---intent consistency scores learned from TRAIL traces do not align with ATBench traces. This creates a portability-accuracy trade-off: UBFS-20 transfers better, UBFS-28 detects better within-domain. Practitioners must choose.
 
+\subsection{Adversarial Evasion Testing}
+\label{sec:evasion}
+
+Experiment~9 tests three evasion strategies against UBFS-based monitoring, formalising the ``boiling frog'' pattern from~\cite{rimal2026insider} into a measurable adversarial framework.
+
+\textbf{Feature clamping} caps anomalous features at the 95th percentile of the normal distribution, simulating an attacker who knows the monitoring thresholds. \textbf{Gradual escalation} linearly interpolates from a normal profile to an anomalous target in $N$ steps. \textbf{Mimicry} replaces all features except the privilege dimension with the nearest normal neighbour's values, preserving the attack payload while making everything else look normal.
+
+\begin{table}[htbp]
+\caption{Adversarial Evasion: AUC-ROC Drop (\%) by Strategy}
+\label{tab:evasion}
+\centering
+\small
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+\textbf{Strategy} & \textbf{Model} & \textbf{ASI01} & \textbf{ASI02} & \textbf{ASI05} & \textbf{ASI09} & \textbf{ASI10} \\
+\midrule
+\multirow{3}{*}{Clamp}
+ & IF   &  5.1 &  1.5 &  7.9 &  2.5 &  2.8 \\
+ & LSTM &  2.9 &  1.9 & \textbf{20.9} &  6.8 &  3.8 \\
+ & DC   & --4.1 &  1.4 & 10.0 &  1.4 & --0.1 \\
+\addlinespace
+\multirow{3}{*}{Mimicry}
+ & IF   &  9.6 &  0.0 &  6.1 & 14.6 & 12.4 \\
+ & LSTM &  8.4 &  0.0 & \textbf{25.1} & 14.6 & 11.3 \\
+ & DC   &  4.8 & --1.0 & 14.4 & 14.4 & 11.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three findings emerge from Table~\ref{tab:evasion}. \textbf{ASI05 is most vulnerable.} Memory Poisoning relies on volume spikes that are easily capped; clamping drops LSTM detection by 21\%, and mimicry drops it by 25\%. This category's high baseline AUC-ROC (0.976) is artificially inflated by the same feature visibility that makes it easy to evade.
+
+\textbf{ASI02 is immune to evasion}---because there is nothing to evade. All three strategies produce $<$2\% change, confirming that ASI02 is already at the detection floor. You cannot degrade what is already at chance.
+
+\textbf{Gradual escalation reveals a sharp threshold.} Only ASI05 triggers detection before full escalation ($\alpha = 0.64$ for IF, $\alpha = 0.92$ for LSTM). All other categories require $\alpha = 1.0$---the complete anomalous profile---before crossing the detection threshold. This means behavioural monitoring is binary, not gradual: either the anomaly is large enough to detect, or it is invisible. There is no ``early warning'' for subtle attacks.
+
+\subsection{Temporal Window Ablation}
+\label{sec:temporal}
+
+Experiment~10 tests whether the optimal monitoring window transfers across domains. In~\cite{rimal2026insider}, 7-day windows outperform 14 and 30-day windows for insider detection. We test analogous span windows (5, 10, 20, full trace) on TRAIL and ATBench.
+
+\begin{table}[htbp]
+\caption{Temporal Window Ablation (AUC-ROC)}
+\label{tab:temporal}
+\centering
+\small
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{Dataset} & \textbf{Model} & \textbf{5} & \textbf{10} & \textbf{20} & \textbf{Full} \\
+\midrule
+\multirow{3}{*}{TRAIL}
+ & IF   & .543 & \textbf{.581} & .505 & .577 \\
+ & LSTM & .479 & .537 & .509 & \textbf{.685} \\
+ & DC   & .842 & .829 & .851 & \textbf{.897} \\
+\addlinespace
+\multirow{3}{*}{ATBench}
+ & IF   & .783 & \textbf{.838} & .838 & .838 \\
+ & LSTM & .720 & \textbf{.781} & .781 & .781 \\
+ & DC   & .701 & \textbf{.891} & .891 & .891 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Ten spans is the saturation point for ATBench.} All three models plateau at 10 spans, with no improvement from 20 or full traces (Table~\ref{tab:temporal}). ATBench trajectories average 8.97 turns---10 spans captures the complete behavioural signature. Beyond saturation, additional spans add noise, not signal.
+
+\textbf{TRAIL shows model-dependent optima.} Isolation Forest peaks at 10 spans (0.581 vs.\ 0.577 at full), but LSTM and DC perform best on full traces. TRAIL's error patterns are distributed throughout execution; temporal models benefit from the complete sequence, while IF's isolation geometry stabilises earlier.
+
+\textbf{The structural insight transfers.} In~\cite{rimal2026insider}, 7 days (23\% of the 30-day maximum) is optimal for Isolation Forest. Here, 10 spans is optimal for IF on both datasets. The pattern is consistent: simpler models extract sufficient signal from early observations, while sequence-aware models benefit from longer histories. Monitoring systems should use adaptive windows---short for threshold-based detection, long for temporal anomaly detection.
+
+\subsection{MITRE ATLAS Mapping}
+\label{sec:atlas}
+
+Experiment~11 tests whether the UBFS detection framework generalises beyond OWASP to the MITRE ATLAS adversarial ML taxonomy~\cite{mitre2024atlas}. We map five ATLAS techniques to UBFS perturbation profiles and evaluate detection using the same synthetic injection pipeline as Experiment~3.
+
+\begin{table}[htbp]
+\caption{MITRE ATLAS Detection Matrix (AUC-ROC, mean $\pm$ std)}
+\label{tab:atlas}
+\centering
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{ATLAS Technique} & \textbf{IF} & \textbf{LSTM} & \textbf{DC} \\
+\midrule
+T0044 Replication & $.993{\pm}.003$ & $.998{\pm}.001$ & $.909{\pm}.024$ \\
+T0048 Extraction  & $.990{\pm}.005$ & $.990{\pm}.006$ & $.880{\pm}.041$ \\
+T0043 Adversarial & $.956{\pm}.009$ & $.931{\pm}.011$ & $.779{\pm}.074$ \\
+T0025 Exfiltration & $.993{\pm}.004$ & $.996{\pm}.003$ & $.899{\pm}.030$ \\
+T0042 Verify      & $.975{\pm}.007$ & $.964{\pm}.013$ & $.830{\pm}.051$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{All five ATLAS techniques are strongly detectable.} Isolation Forest and LSTM Autoencoder achieve $>$0.93 AUC-ROC across all techniques (Table~\ref{tab:atlas}). Deep Clustering is weaker but still above 0.78. This is because ATLAS techniques---model replication, extraction, adversarial data crafting---have strong FREQUENCY and VOLUME signatures. They require many queries, high data throughput, and systematic access patterns. These are exactly the dimensions where UBFS-based detection excels.
+
+\textbf{No new blind spots.} The cross-taxonomy comparison reveals that all five ATLAS techniques land in the ``strong'' detection tier ($>$0.80 for IF). The OWASP blind spot (ASI02: Tool Misuse) has no ATLAS equivalent---ATLAS techniques are volume-intensive by nature, making them structurally visible. The only blind spot in UBFS-based detection remains intent-based: attacks that use the right tools in the right way for the wrong reasons.
+
+\textbf{T0043 (Adversarial Data Crafting) is the weakest.} At 0.779 AUC-ROC for DC, it is the closest ATLAS technique to the moderate tier. Its SCOPE signature (broad resource exploration) partially overlaps with normal multi-tool agent behaviour, making it harder to distinguish. This is the ATLAS analogue of ASI01 (Goal Hijacking)---both involve diverse tool usage that could be legitimate.
+
 % ============================================================================
 \section{Governance Analysis}
 \label{sec:governance}
@@ -552,7 +654,7 @@ The boundary is crisp: behavioural anomaly detection catches \textit{how} someth
 
 \subsection{Real-World Validation}
 
-The Anthropic disclosures of February 2026~\cite{anthropic2026distillation} provide unplanned validation of three findings from this paper. First, the GTG-1002 espionage campaign used Claude Code with MCP tools as an autonomous agent---confirming the structural equivalence between insider threat and agent threat patterns that underpins our transfer results (Experiments~1--2, 7). Second, the campaign used task decomposition (splitting espionage into ``defensive testing'' subtasks) as its primary evasion strategy---the same mechanism quantified in Experiment~6, where decomposition costs 5--6\% detection power. Third, the distillation attacks distributed traffic across 20,000+ accounts so per-account behaviour fell within normal bounds---confirming the HYDRA blind spot (0.54 AUC-ROC) identified in Experiment~5. Anthropic detected these attacks through metadata correlation and network-level analysis, not per-account behavioural monitoring---precisely because per-entity monitoring cannot see coordination patterns.
+The Anthropic disclosures of February 2026~\cite{anthropic2026distillation} provide unplanned validation of three findings from this paper. First, the GTG-1002 espionage campaign used Claude Code with MCP tools as an autonomous agent---confirming the structural equivalence between insider threat and agent threat patterns that underpins our transfer results (Experiments~1--2, 7). Second, the campaign used task decomposition (splitting espionage into ``defensive testing'' subtasks) as its primary evasion strategy---the same mechanism quantified in Experiment~6, where decomposition costs 5--6\% detection power. Third, the distillation attacks distributed traffic across 20,000+ accounts so per-account behaviour fell within normal bounds---confirming the HYDRA blind spot (0.54 AUC-ROC) identified in Experiment~5. Anthropic detected these attacks through metadata correlation and network-level analysis, not per-account behavioural monitoring---precisely because per-entity monitoring cannot see coordination patterns. Experiment~9 further quantifies this: mimicry evasion degrades ASI05 detection by 25\% for LSTM, confirming that volume-dependent detection is brittle against adversaries who know the monitoring thresholds.
 
 \subsection{Limitations}
 
@@ -576,13 +678,17 @@ Three directions follow from the experimental results.
 
 \textbf{Coordination-aware detection.} The HYDRA blind spot (Experiment~5) demonstrates that per-entity monitoring cannot detect distributed attacks. Detection requires cross-entity correlation: aggregate volume tracking, account network analysis, and temporal coordination fingerprinting. Anthropic's detection of the distillation attacks relied on exactly these signals~\cite{anthropic2026distillation}. Integrating coordination features into UBFS would address this second structural blind spot.
 
+\textbf{Adversarial-robust features.} Experiment~9 shows that ASI05's high detection rate is brittle---mimicry evasion drops LSTM from 0.976 to 0.731 AUC-ROC. Future work should develop features robust to nearest-neighbour mimicry, such as higher-order interaction terms or temporal signatures that cannot be individually replaced.
+
+\textbf{Adaptive window monitoring.} Experiment~10 reveals that Isolation Forest saturates at 10 spans while LSTM benefits from full traces. A production system should use \textit{adaptive windows}: short windows for fast threshold-based alerts (IF), long windows for temporal pattern detection (LSTM). The 10-span saturation point on ATBench suggests a principled default for MCP-style tool traces.
+
 \textbf{Transformer architectures.} Self-attention~\cite{vaswani2017attention} over behavioural sequences may capture longer-range dependencies than LSTM autoencoders and provide better interpretability through attention weight analysis. The LSTM's robustness to decomposition evasion (Experiment~6, $-0.007$ vs.\ $-0.051$ to $-0.064$ for other models) suggests that sequence-aware architectures are more resistant to temporal evasion strategies---transformers may extend this advantage further.
 
 % ============================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-Five findings, in order of surprise.
+Seven findings, in order of surprise.
 
 \textbf{First, the transfer works---and generalises.} An Isolation Forest trained on insider threat data retains 97\% of its detection power on agent traces (Experiment~2), and transfer to MCP tool-calling benchmarks exceeds within-domain performance at 104.8\% retention (Experiment~7). The UBFS bridge enables genuine cross-domain anomaly detection across multiple agent benchmark boundaries.
 
@@ -592,7 +698,11 @@ Five findings, in order of surprise.
 
 \textbf{Fourth, evasion patterns transfer across domains.} Task decomposition costs 5--6\% detection power in the agent domain (Experiment~6), mirroring the ``boiling frog'' pattern that drops insider threat detection from 69\% to 3\% in~\cite{rimal2026insider}. The Anthropic-disclosed GTG-1002 campaign used exactly this strategy. The threat models port. So do the evasion strategies.
 
-\textbf{Fifth, the biases transfer too.} The same six normality assumptions---about working hours, peer conformity, resource scope, data volume, action predictability, and role stability---are embedded in both insider threat models and the agent monitoring systems derived from them. Governance frameworks must audit these assumptions explicitly, not inherit them from the source domain.
+\textbf{Fifth, high detection rates are brittle.} Experiment~9 shows that mimicry evasion---copying a normal neighbour's features while preserving the attack payload---degrades ASI05 detection by up to 25\%. The categories that \textit{appear} most detectable are the ones most vulnerable to informed adversaries. ASI02, paradoxically, is immune to evasion because it is already at the detection floor. Robustness and detectability are inversely correlated.
+
+\textbf{Sixth, early signals suffice.} Experiment~10 reveals that 10 spans capture the same detection signal as full traces for Isolation Forest on both TRAIL and ATBench. This mirrors the 7-day optimal window from insider detection~\cite{rimal2026insider}. Monitoring systems can use short observation windows without sacrificing accuracy, reducing both computational cost and detection latency.
+
+\textbf{Seventh, the framework generalises beyond OWASP.} All five MITRE ATLAS techniques are strongly detectable through UBFS ($>$0.93 AUC-ROC for IF/LSTM, Experiment~11). No new blind spots emerge. The ATLAS techniques---model replication, extraction, adversarial crafting---have strong volume and frequency signatures that UBFS captures by design. The only blind spot remains intent-based: attacks that use the right tools for the wrong reasons.
 
 The deeper lesson: insider threat detection and AI agent monitoring are not analogous disciplines. They are the \textit{same} discipline, applied to different principals. Building one from scratch while ignoring the other wastes decades of hard-won security knowledge---and risks rediscovering the same blind spots the hard way.
 
