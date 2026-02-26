@@ -1,6 +1,14 @@
 # Threat-to-Governance Pipeline
 
-Insider threat detection models applied to AI agent behavioral monitoring. Experiments 1-4 complete. Experiments 5-8 extend the pipeline with new threat categories validated by the Feb 2026 Anthropic incidents.
+Insider threat detection models applied to AI agent behavioral monitoring. Experiments 1-8 complete. Experiments 9-11 are the NEXT step (see `EXPERIMENTS_9_11.md` for full spec).
+
+## Current Status
+
+- **Experiments 1-8:** COMPLETE. Results in `results/tables/`. Paper compiled at `paper/main.pdf`.
+- **Experiments 9-11:** PLANNED. Specification in `EXPERIMENTS_9_11.md`. Code needs to be written and run.
+  - Exp 9: Adversarial evasion testing (clamping, gradual escalation, mimicry)
+  - Exp 10: Temporal window ablation on agent traces
+  - Exp 11: MITRE ATLAS taxonomy mapping
 
 ## Development Workflow
 
@@ -13,15 +21,24 @@ pytest tests/ -v
 # Run completed experiments
 python run_experiments.py --all --cert
 
-# Run single new experiment
+# Run specific experiment
 python run_experiments.py --experiment 5
-python run_experiments.py --experiment 6
-python run_experiments.py --experiment 7
-python run_experiments.py --experiment 8
+python run_experiments.py --experiment 9   # After implementing
 
 # Generate figures
 python generate_figures.py
 ```
+
+## NEXT TASK: Implement and Run Experiments 9-11
+
+Read `EXPERIMENTS_9_11.md` for the full specification. Key points:
+- Follow the exact code pattern of experiments 5-8 in `run_experiments.py`
+- Each experiment uses 3 models (IF, LSTM-AE, DC), 5 seeds [42-46], saves JSON to `results/tables/`
+- Exp 9 manipulates UBFS vectors post-extraction (no new modules needed)
+- Exp 10 adds a `max_spans` param to feature extraction (minor change to `agent_extractor.py`)
+- Exp 11 adds ATLAS profiles to `synthetic_generator.py` (same pattern as OWASP profiles)
+- Update `main()` CLI to accept `--experiment 9/10/11`
+- Run all three and commit results
 
 ## Architecture
 
