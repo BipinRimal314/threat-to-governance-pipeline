@@ -2707,17 +2707,19 @@ def experiment_12():
 
 
 def experiment_13():
-    """Distillation sensitivity analysis.
+    """Distillation sensitivity analysis via feature-space scaling.
 
-    Scales distillation profile multipliers by [0.25, 0.5, 1.0, 2.0]
-    to test how detection degrades with lower attack intensity.
-    Scaling formula: new_mult = 1 + (old_mult - 1) * scale
+    Generates distillation attacks at full intensity, then scales the
+    perturbation in UBFS feature space:
+        X_scaled = X_normal_mean + scale * (X_original - X_normal_mean)
 
-    HYDRA should remain flat (already near 1.0 multipliers), while
-    FOCUSED/BROAD/COT should show clear degradation at lower scales.
+    scale=0.25 → 25% of original perturbation (subtle attack)
+    scale=1.0  → original perturbation (baseline)
+    scale=2.0  → 200% of original perturbation (amplified attack)
+
+    HYDRA should remain flat (features already near-normal), while
+    FOCUSED/BROAD/COT should show clear AUC degradation at lower scales.
     """
-    from src.data.synthetic_generator import OWASP_PROFILES
-
     print("\n" + "=" * 60)
     print("EXPERIMENT 13: Distillation Sensitivity Analysis")
     print("=" * 60)
@@ -2748,83 +2750,88 @@ def experiment_13():
         ),
     }
 
-    # Save original profiles to restore later
-    import copy as _copy
-    original_profiles = {
-        cat: _copy.deepcopy(OWASP_PROFILES[cat])
-        for cat in distill_cats
-    }
+    # Pre-extract features at full intensity for each seed × category
+    print("  Pre-extracting features at full intensity...")
+    seed_data = {}
+    for seed in SEEDS:
+        seed_data[seed] = {}
+        for cat in distill_cats:
+            mixed, labels, owasp_cats = generate_anomalous_traces(
+                base_traces,
+                anomaly_ratio=0.3,
+                categories=[cat],
+                seed=seed,
+            )
+
+            extractor = AgentTraceFeatureExtractor()
+            X, ids, ts = extractor.extract_batch(mixed)
+            normalizer = UBFSNormalizer(method="zscore")
+            X = normalizer.fit_transform(X)
+
+            normal_mask = labels == 0
+            seed_data[seed][cat] = {
+                "X": X,
+                "labels": labels,
+                "normal_mask": normal_mask,
+                "X_normal_mean": X[normal_mask].mean(axis=0),
+            }
+        short_cats = [c.replace("ASI_DISTILL_", "")
+                      for c in distill_cats]
+        print(f"    seed={seed}: {', '.join(short_cats)}")
 
     results = {}
 
-    try:
-        for name, (cls, kwargs) in models_spec.items():
-            print(f"\n  {name}:")
-            results[name] = {}
+    for name, (cls, kwargs) in models_spec.items():
+        print(f"\n  {name}:")
+        results[name] = {}
 
-            for cat in distill_cats:
-                results[name][cat] = {}
-
-                for scale in scales:
-                    # Scale the profile: new = 1 + (orig - 1) * scale
-                    scaled = _copy.deepcopy(original_profiles[cat])
-                    for key, val in scaled.items():
-                        if key == "description":
-                            continue
-                        if key.endswith("_mult"):
-                            scaled[key] = 1.0 + (val - 1.0) * scale
-                        elif key.endswith("_add"):
-                            scaled[key] = val * scale
-                    OWASP_PROFILES[cat] = scaled
-
-                    seed_aucs = []
-                    for seed in SEEDS:
-                        mixed, labels, owasp_cats = \
-                            generate_anomalous_traces(
-                                base_traces,
-                                anomaly_ratio=0.3,
-                                categories=[cat],
-                                seed=seed,
-                            )
-
-                        extractor = AgentTraceFeatureExtractor()
-                        X, ids, ts = extractor.extract_batch(mixed)
-                        normalizer = UBFSNormalizer(method="zscore")
-                        X = normalizer.fit_transform(X)
-
-                        normal_mask = labels == 0
-                        X_train = X[normal_mask]
-
-                        if name == "LSTMAutoencoder":
-                            model = cls(**{**kwargs, "seed": seed})
-                            model.fit(X_train[:, np.newaxis, :])
-                            scores = model.score(
-                                X[:, np.newaxis, :]
-                            )
-                        else:
-                            model = cls(**{**kwargs, "seed": seed})
-                            model.fit(X_train)
-                            scores = model.score(X)
-
-                        m = compute_metrics(labels, scores)
-                        seed_aucs.append(m.auc_roc)
-
-                    mean_auc = float(np.mean(seed_aucs))
-                    std_auc = float(np.std(seed_aucs))
-                    results[name][cat][str(scale)] = {
-                        "auc_roc_mean": mean_auc,
-                        "auc_roc_std": std_auc,
-                    }
-
-                    short = cat.replace("ASI_DISTILL_", "")
-                    print(f"    {short} scale={scale}: "
-                          f"AUC={mean_auc:.4f} "
-                          f"(+/- {std_auc:.4f})")
-
-    finally:
-        # Restore original profiles
         for cat in distill_cats:
-            OWASP_PROFILES[cat] = original_profiles[cat]
+            results[name][cat] = {}
+
+            for scale in scales:
+                seed_aucs = []
+                for seed in SEEDS:
+                    sd = seed_data[seed][cat]
+                    X_orig = sd["X"]
+                    labels = sd["labels"]
+                    normal_mask = sd["normal_mask"]
+                    mu = sd["X_normal_mean"]
+
+                    # Scale perturbation in feature space
+                    X_scaled = X_orig.copy()
+                    anom_idx = np.where(~normal_mask)[0]
+                    for i in anom_idx:
+                        X_scaled[i] = mu + scale * (
+                            X_orig[i] - mu
+                        )
+
+                    X_train = X_scaled[normal_mask]
+
+                    if name == "LSTMAutoencoder":
+                        model = cls(**{**kwargs, "seed": seed})
+                        model.fit(X_train[:, np.newaxis, :])
+                        scores = model.score(
+                            X_scaled[:, np.newaxis, :]
+                        )
+                    else:
+                        model = cls(**{**kwargs, "seed": seed})
+                        model.fit(X_train)
+                        scores = model.score(X_scaled)
+
+                    m = compute_metrics(labels, scores)
+                    seed_aucs.append(m.auc_roc)
+
+                mean_auc = float(np.mean(seed_aucs))
+                std_auc = float(np.std(seed_aucs))
+                results[name][cat][str(scale)] = {
+                    "auc_roc_mean": mean_auc,
+                    "auc_roc_std": std_auc,
+                }
+
+                short = cat.replace("ASI_DISTILL_", "")
+                print(f"    {short} scale={scale}: "
+                      f"AUC={mean_auc:.4f} "
+                      f"(+/- {std_auc:.4f})")
 
     # Summary
     print("\n" + "-" * 60)

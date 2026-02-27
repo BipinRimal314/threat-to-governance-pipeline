@@ -78,7 +78,9 @@
         "std": 0.04530008284395222
       }
     },
-    "auc_roc_delta": 0.050975122850122845
+    "auc_roc_delta": 0.050975122850122845,
+    "wilcoxon_stat": 15.0,
+    "wilcoxon_p": 0.03125
   },
   "LSTMAutoencoder": {
     "overall": {
@@ -159,7 +161,9 @@
         "std": 0.048990664014911256
       }
     },
-    "auc_roc_delta": 0.007102272727272707
+    "auc_roc_delta": 0.007102272727272707,
+    "wilcoxon_stat": 13.0,
+    "wilcoxon_p": 0.09375
   },
   "DeepClustering": {
     "overall": {
@@ -240,6 +244,8 @@
         "std": 0.0529538137990581
       }
     },
-    "auc_roc_delta": 0.0642736486486486
+    "auc_roc_delta": 0.0642736486486486,
+    "wilcoxon_stat": 15.0,
+    "wilcoxon_p": 0.03125
   }
 }
