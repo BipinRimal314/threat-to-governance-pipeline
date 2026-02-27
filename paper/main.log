@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.2.20)  27 FEB 2026 03:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.2.20)  27 FEB 2026 12:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -525,341 +525,337 @@ f-dist/fonts/enc/dvips/base/8r.enc}
 
 
 ]
-Underfull \hbox (badness 1939) in paragraph at lines 73--74
-\OT1/ptm/m/n/10 UBFS with 8 se-man-tic di-men-sions im-proves four
- []
-
-
-Underfull \hbox (badness 7558) in paragraph at lines 74--75
+Underfull \hbox (badness 7558) in paragraph at lines 76--77
 []\OT1/ptm/b/n/10 Adversarial eva-sion frame-work\OT1/ptm/m/n/10 : Three eva-si
 on
  []
 
-
-Underfull \hbox (badness 3930) in paragraph at lines 89--90
+[2]
+Underfull \hbox (badness 3930) in paragraph at lines 91--92
 \OT1/ptm/m/n/10 learn-ing, cat-a-logu-ing tech-niques from model ex-trac-tion
  []
 
-[2]
-Underfull \hbox (badness 10000) in paragraph at lines 118--118
+
+Underfull \hbox (badness 10000) in paragraph at lines 120--120
 []\OT1/ptm/m/n/9 Logon hours,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 118--118
+Underfull \hbox (badness 10000) in paragraph at lines 120--120
 \OT1/ptm/m/n/9 ses-sion
  []
 
 
-Underfull \hbox (badness 5217) in paragraph at lines 118--118
+Underfull \hbox (badness 5217) in paragraph at lines 120--120
 \OT1/ptm/m/n/9 du-ra-tion, after-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 118--119
+Underfull \hbox (badness 10000) in paragraph at lines 120--121
 []\OT1/ptm/m/n/9 Trace start,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 118--119
+Underfull \hbox (badness 10000) in paragraph at lines 120--121
 \OT1/ptm/m/n/9 span du-ra-tion,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 118--119
+Underfull \hbox (badness 10000) in paragraph at lines 120--121
 \OT1/ptm/m/n/9 off-schedule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 120--120
+Underfull \hbox (badness 10000) in paragraph at lines 122--122
 []\OT1/ptm/m/n/9 Event counts
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 120--120
+Underfull \hbox (badness 10000) in paragraph at lines 122--122
 \OT1/ptm/m/n/9 (email, file,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 120--121
+Underfull \hbox (badness 10000) in paragraph at lines 122--123
 \OT1/ptm/m/n/9 calls, er-ror
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--122
+Underfull \hbox (badness 10000) in paragraph at lines 124--124
 []\OT1/ptm/m/n/9 Data
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--122
+Underfull \hbox (badness 10000) in paragraph at lines 124--124
 \OT1/ptm/m/n/9 trans-ferred,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--123
+Underfull \hbox (badness 10000) in paragraph at lines 124--125
 []\OT1/ptm/m/n/9 Token us-age,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 124--124
+Underfull \hbox (badness 10000) in paragraph at lines 126--126
 []\OT1/ptm/m/n/9 Systems
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 124--124
+Underfull \hbox (badness 10000) in paragraph at lines 126--126
 \OT1/ptm/m/n/9 ac-cessed,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 124--124
+Underfull \hbox (badness 10000) in paragraph at lines 126--126
 \OT1/ptm/m/n/9 unique
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 124--125
+Underfull \hbox (badness 10000) in paragraph at lines 126--127
 []\OT1/ptm/m/n/9 Tools in-voked,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 126--126
+Underfull \hbox (badness 10000) in paragraph at lines 128--128
 \OT1/ptm/m/n/9 tran-si-tion
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 126--127
+Underfull \hbox (badness 10000) in paragraph at lines 128--129
 []\OT1/ptm/m/n/9 Tool-call
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 128--129
+Underfull \hbox (badness 10000) in paragraph at lines 130--131
 []\OT1/ptm/m/n/9 Agent-type
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 128--129
+Underfull \hbox (badness 10000) in paragraph at lines 130--131
 \OT1/ptm/m/n/9 base-line
  []
 
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
-37.
+39.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Underfull \hbox (badness 1616) in paragraph at lines 137--138
+Underfull \hbox (badness 1616) in paragraph at lines 139--140
 \OT1/ptm/m/n/10 The \OT1/pcr/m/n/10 cert_extractor \OT1/ptm/m/n/10 maps CMU-CER
 T's five ac-tiv-
  []
 
-[3]
-Overfull \hbox (5.14066pt too wide) in paragraph at lines 217--226
+[3] [4]
+Overfull \hbox (5.14066pt too wide) in paragraph at lines 223--232
  [][] 
  []
 
-[4]
-Underfull \hbox (badness 1642) in paragraph at lines 232--233
+
+Underfull \hbox (badness 1642) in paragraph at lines 238--239
 []\OT1/ptm/b/n/10 CMU-CERT works through UBFS. \OT1/ptm/m/n/10 Iso-la-tion For-
 est
  []
 
 
-Underfull \hbox (badness 1867) in paragraph at lines 232--233
+Underfull \hbox (badness 1867) in paragraph at lines 238--239
 \OT1/ptm/m/n/10 pipeline [[]4[]]. The 9.4% drop is the cost of the lossy
  []
 
 
-Underfull \hbox (badness 1917) in paragraph at lines 232--233
+Underfull \hbox (badness 1917) in paragraph at lines 238--239
 \OT1/ptm/m/n/10 UBFS compression---trading de-tec-tion fi-delity for cross-
  []
 
-<figures/fig2_roc_curves.png, id=249, 1004.7939pt x 571.8966pt>
+<figures/fig2_roc_curves.png, id=261, 1004.7939pt x 571.8966pt>
 File: figures/fig2_roc_curves.png Graphic file (type png)
 <use figures/fig2_roc_curves.png>
-Package pdftex.def Info: figures/fig2_roc_curves.png  used on input line 236.
+Package pdftex.def Info: figures/fig2_roc_curves.png  used on input line 242.
 (pdftex.def)             Requested size: 252.0pt x 143.42757pt.
-<figures/fig1_feature_heatmap.png, id=252, 987.4491pt x 354.6048pt>
+[5 <./figures/fig2_roc_curves.png>]
+<figures/fig1_feature_heatmap.png, id=276, 987.4491pt x 354.6048pt>
 File: figures/fig1_feature_heatmap.png Graphic file (type png)
 <use figures/fig1_feature_heatmap.png>
 Package pdftex.def Info: figures/fig1_feature_heatmap.png  used on input line 2
-86.
+92.
 (pdftex.def)             Requested size: 252.0pt x 90.49606pt.
-[5 <./figures/fig2_roc_curves.png>]
-<figures/fig3_owasp_matrix.png, id=268, 523.2348pt x 245.9589pt>
+
+Overfull \hbox (7.50545pt too wide) in paragraph at lines 307--319
+ [][] 
+ []
+
+<figures/fig3_owasp_matrix.png, id=279, 523.2348pt x 245.9589pt>
 File: figures/fig3_owasp_matrix.png Graphic file (type png)
 <use figures/fig3_owasp_matrix.png>
-Package pdftex.def Info: figures/fig3_owasp_matrix.png  used on input line 322.
+Package pdftex.def Info: figures/fig3_owasp_matrix.png  used on input line 329.
 
 (pdftex.def)             Requested size: 252.0pt x 118.4605pt.
-<figures/fig4_score_distributions.png, id=272, 860.2539pt x 282.5757pt>
+<figures/fig4_score_distributions.png, id=283, 860.2539pt x 282.5757pt>
 File: figures/fig4_score_distributions.png Graphic file (type png)
 <use figures/fig4_score_distributions.png>
 Package pdftex.def Info: figures/fig4_score_distributions.png  used on input li
-ne 340.
+ne 347.
 (pdftex.def)             Requested size: 252.0pt x 82.7727pt.
-<figures/fig5_tsne_latent.png, id=273, 860.2539pt x 354.8457pt>
+<figures/fig5_tsne_latent.png, id=284, 860.2539pt x 354.8457pt>
 File: figures/fig5_tsne_latent.png Graphic file (type png)
 <use figures/fig5_tsne_latent.png>
-Package pdftex.def Info: figures/fig5_tsne_latent.png  used on input line 347.
+Package pdftex.def Info: figures/fig5_tsne_latent.png  used on input line 354.
 (pdftex.def)             Requested size: 252.0pt x 103.94218pt.
- [6 <./figures/fig1_feature_heatmap.png> <./figures/fig3_owasp_matrix.png> <./f
-igures/fig4_score_distributions.png> <./figures/fig5_tsne_latent.png>] [7] [8]
-Underfull \hbox (badness 10000) in paragraph at lines 597--597
+[6 <./figures/fig1_feature_heatmap.png> <./figures/fig3_owasp_matrix.png>]
+[7 <./figures/fig4_score_distributions.png> <./figures/fig5_tsne_latent.png>]
+[8] [9]
+Underfull \hbox (badness 10000) in paragraph at lines 667--667
 []\OT1/ptm/b/n/9 Insider
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 599--599
+Underfull \hbox (badness 10000) in paragraph at lines 669--669
 []\OT1/ptm/m/n/9 After-hours
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 599--599
+Underfull \hbox (badness 10000) in paragraph at lines 669--669
 \OT1/ptm/m/n/9 ac-tiv-ity is
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 599--599
+Underfull \hbox (badness 10000) in paragraph at lines 669--669
 []\OT1/ptm/m/n/9 Penalises shift
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 599--600
+Underfull \hbox (badness 10000) in paragraph at lines 669--670
 []\OT1/ptm/m/n/9 Penalises
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 599--600
+Underfull \hbox (badness 10000) in paragraph at lines 669--670
 \OT1/ptm/m/n/9 sched-uled agents,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 601--601
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
 []\OT1/ptm/m/n/9 Peer
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 601--601
+Underfull \hbox (badness 10000) in paragraph at lines 671--671
 \OT1/ptm/m/n/9 de-vi-a-tion
  []
 
 
-Underfull \hbox (badness 7030) in paragraph at lines 603--603
+Underfull \hbox (badness 7030) in paragraph at lines 673--673
 []\OT1/ptm/m/n/9 Broad scope
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 603--603
+Underfull \hbox (badness 10000) in paragraph at lines 673--673
 []\OT1/ptm/m/n/9 Privileges
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 603--603
+Underfull \hbox (badness 10000) in paragraph at lines 673--673
 \OT1/ptm/m/n/9 spe-cial-ists over
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 603--604
+Underfull \hbox (badness 10000) in paragraph at lines 673--674
 []\OT1/ptm/m/n/9 Flags multi-tool
  []
 
 
-Underfull \hbox (badness 1383) in paragraph at lines 605--605
+Underfull \hbox (badness 1383) in paragraph at lines 675--675
 []\OT1/ptm/m/n/9 High vol-ume
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 607--607
+Underfull \hbox (badness 10000) in paragraph at lines 677--677
 []\OT1/ptm/m/n/9 Unpredictable
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 607--607
+Underfull \hbox (badness 10000) in paragraph at lines 677--677
 \OT1/ptm/m/n/9 ac-tions are
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 607--607
+Underfull \hbox (badness 10000) in paragraph at lines 677--677
 []\OT1/ptm/m/n/9 Penalises cre-ative,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 607--608
+Underfull \hbox (badness 10000) in paragraph at lines 677--678
 []\OT1/ptm/m/n/9 Penalises novel
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 609--609
+Underfull \hbox (badness 10000) in paragraph at lines 679--679
 []\OT1/ptm/m/n/9 Above-role
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 609--609
+Underfull \hbox (badness 10000) in paragraph at lines 679--679
 \OT1/ptm/m/n/9 ac-cess is
  []
 
-<figures/fig6_governance_table.png, id=323, 1004.553pt x 281.853pt>
+<figures/fig6_governance_table.png, id=343, 1004.553pt x 281.853pt>
 File: figures/fig6_governance_table.png Graphic file (type png)
 <use figures/fig6_governance_table.png>
 Package pdftex.def Info: figures/fig6_governance_table.png  used on input line 
-616.
+686.
 (pdftex.def)             Requested size: 252.0pt x 70.7039pt.
 
-Underfull \hbox (badness 2799) in paragraph at lines 623--624
+Underfull \hbox (badness 2799) in paragraph at lines 693--694
 \OT1/pcr/m/n/10 weekend_activity_flag \OT1/ptm/m/n/10 are ef-fec-tively un-used
 ); 6
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 []\OT1/ptm/m/n/10 The highest-divergence features---
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 \OT1/pcr/m/n/10 activity_hour_mean \OT1/ptm/m/n/10 (KL = 24.6),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 \OT1/pcr/m/n/10 output_count_norm \OT1/ptm/m/n/10 (KL = 22.1),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 \OT1/pcr/m/n/10 secondary_event_count \OT1/ptm/m/n/10 (KL = 21.0),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 \OT1/pcr/m/n/10 primary_event_count \OT1/ptm/m/n/10 (KL = 20.9),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 625--626
+Underfull \hbox (badness 10000) in paragraph at lines 695--696
 \OT1/pcr/m/n/10 event_rate_zscore \OT1/ptm/m/n/10 (KL = 19.8)---all have zero
  []
 
-[9 <./figures/fig6_governance_table.png>] [10]
-Underfull \hbox (badness 1824) in paragraph at lines 703--704
-\OT1/ptm/m/n/10 categories---LSTM on ASI01 jumps from 0.63 to 0.94
- []
-
-[11]
-Underfull \hbox (badness 4505) in paragraph at lines 711--712
+[10 <./figures/fig6_governance_table.png>] [11] [12]
+Underfull \hbox (badness 4505) in paragraph at lines 783--784
 \OT1/ptm/m/n/10 All five MITRE AT-LAS tech-niques are strongly de-
  []
 
 
-Underfull \hbox (badness 1533) in paragraph at lines 711--712
+Underfull \hbox (badness 1533) in paragraph at lines 783--784
 \OT1/ptm/m/n/10 Ex-per-i-ment 11). No new blind spots emerge. The AT-
  []
 
 
-Underfull \hbox (badness 8094) in paragraph at lines 715--716
+Underfull \hbox (badness 8094) in paragraph at lines 787--788
 []\OT1/ptm/m/n/10 All code, data pipelines, and ex-per-i-men-tal re-sults
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 715--716
+Underfull \hbox (badness 10000) in paragraph at lines 787--788
 \OT1/ptm/m/n/10 are avail-able at []$https : / / github . com / BipinRimal314 /
 
  []
@@ -911,42 +907,44 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[12] (./main.aux)
+[13] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: BF371D5BC3719CC69E85738AB13F3B0B;5293.
+(rerunfilecheck)             Checksum: 422B6B6F2AB1E44E6AAD8B8E5BDE89D3;5670.
  ) 
 Here is how much of TeX's memory you used:
- 12840 strings out of 476182
- 204948 string characters out of 5795595
- 1949975 words of memory out of 5000000
- 34568 multiletter control sequences out of 15000+600000
- 603242 words of font info for 125 fonts, out of 8000000 for 9000
+ 12865 strings out of 476182
+ 205255 string characters out of 5795595
+ 1950975 words of memory out of 5000000
+ 34580 multiletter control sequences out of 15000+600000
+ 605072 words of font info for 131 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,11n,79p,2132b,467s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr
-/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/
-texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texliv
-e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf
--dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.
-pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></u
-sr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texl
-ive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/
-fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/ur
-w/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a
-.pfb>
-Output written on main.pdf (12 pages, 1704869 bytes).
+ 75i,11n,79p,2376b,442s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share
+/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texliv
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
+10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb>
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/s
+hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/te
+xlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fon
+ts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/ti
+mes/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb
+></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (13 pages, 1742820 bytes).
 PDF statistics:
- 462 PDF objects out of 1000 (max. 8388607)
- 398 compressed objects within 4 object streams
- 104 named destinations out of 1000 (max. 500000)
- 303 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 500 PDF objects out of 1000 (max. 8388607)
+ 428 compressed objects within 5 object streams
+ 111 named destinations out of 1000 (max. 500000)
+ 319 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -30,7 +30,7 @@ rimalb@uni.coventry.ac.uk}
 
 % ============================================================================
 \begin{abstract}
-AI agent monitoring and insider threat detection share the same architecture: profile a baseline, flag deviations, encode assumptions about trust. We make this concrete across eleven experiments. Using a Unified Behavioural Feature Schema (UBFS) that maps both employee activity logs and agent execution traces into a shared representation, we apply three anomaly detection models---Isolation Forest, LSTM Autoencoder, and Deep Clustering---across five domains. Cross-domain transfer works: an Isolation Forest trained on 329,000 insider threat user-days retains \textbf{97\% of detection power} on agent traces, and transfer to MCP tool-calling benchmarks exceeds within-domain performance (104.8\% retention). But the blind spots transfer too. Model distillation attacks span a detection spectrum from trivially caught (FOCUSED extraction: 0.99 AUC-ROC) to near-chance (HYDRA distributed: 0.54), and task decomposition---splitting a malicious objective into innocent subtasks---costs 5--6\% detection power across all models. The most persistent blind spot is Tool Misuse (ASI02), where agents use the right tools in the right order with escalated privileges. Augmenting UBFS with eight semantic features (UBFS-28) dramatically improves detection for four of five OWASP categories but \textbf{fails to close ASI02} (${\sim}$0.56 AUC-ROC). Adversarial evasion testing reveals that mimicry attacks---copying a normal neighbour's features while preserving the attack payload---degrade detection by up to 25\%, with Memory Poisoning (ASI05) most vulnerable. Temporal window ablation finds that 10 spans are optimal for Isolation Forest on both TRAIL and ATBench, mirroring the 7-day window finding from insider threat detection. Mapping five MITRE ATLAS techniques~\cite{mitre2024atlas} into the UBFS confirms that the framework generalises beyond OWASP: all five techniques are strongly detectable ($>$0.93 AUC-ROC for IF/LSTM), introducing no new blind spots. The detection models port across domains. So do their biases, and so do their blind spots.
+AI agent monitoring and insider threat detection share the same architecture: profile a baseline, flag deviations, encode assumptions about trust. We make this concrete across thirteen experiments. Using a Unified Behavioural Feature Schema (UBFS) that maps both employee activity logs and agent execution traces into a shared representation, we apply three anomaly detection models---Isolation Forest, LSTM Autoencoder, and Deep Clustering---across five domains. Cross-domain transfer works: an Isolation Forest trained on 329,000 insider threat user-days retains \textbf{97\% of detection power} on agent traces, and transfer to MCP tool-calling benchmarks exceeds within-domain performance (104.8\% retention). But the blind spots transfer too. Model distillation attacks span a detection spectrum from trivially caught (FOCUSED extraction: 0.99 AUC-ROC) to near-chance (HYDRA distributed: 0.54), and task decomposition---splitting a malicious objective into innocent subtasks---costs 5--6\% detection power for IF and DC ($p{=}0.031$, Wilcoxon signed-rank), while LSTM Autoencoder shows near-invariance ($-0.7\%$, $p{=}0.094$). Synthetic OWASP profiling identifies Tool Misuse (ASI02) as a blind spot (${\sim}$0.52 AUC-ROC), but \textbf{real-data validation on 500 ATBench trajectories} reveals that this blind spot is an artifact of circular synthetic methodology: real ASI02 achieves 0.86--0.94 AUC-ROC across all models. Augmenting UBFS with eight semantic features (UBFS-28) improves detection by 5--13\% on real data across all categories. Distillation sensitivity analysis shows detection degrades monotonically with attack intensity for FOCUSED/BROAD/COT profiles, while HYDRA remains near-chance regardless of scale. Adversarial evasion testing reveals that mimicry attacks degrade detection by up to 25\%, with Memory Poisoning (ASI05) most vulnerable. Temporal window ablation finds that 10 spans are optimal for Isolation Forest on both TRAIL and ATBench. Mapping five MITRE ATLAS techniques~\cite{mitre2024atlas} into the UBFS confirms that the framework generalises beyond OWASP: all five techniques are strongly detectable ($>$0.93 AUC-ROC for IF/LSTM), introducing no new blind spots. The detection models port across domains. So do their biases, and so do their blind spots.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -68,9 +68,11 @@ The results are stronger than expected in one direction, and more concerning tha
     \item \textbf{OWASP detection matrix}: A per-category analysis showing three detection tiers---strong (ASI05: 0.969), moderate (ASI09, ASI10: 0.72--0.84), and blind spot (ASI02: 0.57--0.59).
     \item \textbf{Governance audit}: Identification of six normality assumptions that transfer across domains, with analysis of their implications for monitoring fairness.
     \item \textbf{Distillation detection spectrum}: Four distillation sub-profiles spanning AUC-ROC 0.54 (HYDRA distributed) to 0.99 (FOCUSED extraction), benchmarked against ASI02 (0.50), revealing two distinct blind-spot failure modes---intent-based and coordination-based.
-    \item \textbf{Decomposition evasion}: Quantified evidence that splitting malicious objectives into innocent subtasks costs 5--6\% detection power, mirroring insider threat ``boiling frog'' escalation.
+    \item \textbf{Decomposition evasion}: Quantified evidence that splitting malicious objectives into innocent subtasks costs 5--6\% detection power for IF and DC ($p{=}0.031$), while LSTM shows near-invariance ($-0.7\%$, $p{=}0.094$), mirroring insider threat ``boiling frog'' escalation.
     \item \textbf{MCP transfer generalisation}: Cross-domain transfer validated on ATBench tool-calling traces, where TRAIL$\to$ATBench Isolation Forest achieves 104.8\% of within-domain performance.
-    \item \textbf{UBFS-28 hybrid}: Proof that the ASI02 blind spot is structural, not a feature engineering gap---augmenting UBFS with 8 semantic dimensions improves four OWASP categories but leaves Tool Misuse at ${\sim}$0.56 AUC-ROC.
+    \item \textbf{UBFS-28 hybrid}: Semantic augmentation improves four OWASP categories on synthetic data but leaves synthetic ASI02 at ${\sim}$0.56 AUC-ROC; however, real-data validation (Experiment~12) shows the synthetic blind spot is an artifact.
+    \item \textbf{Real-data validation}: 500 ATBench trajectories reveal that synthetic OWASP profiling dramatically underestimates real detection performance (ASI02: 0.52 synthetic vs.\ 0.86--0.94 real), and UBFS-28 improves all categories by 5--13\% on real data.
+    \item \textbf{Distillation sensitivity}: Feature-space scaling across 4 intensity levels shows monotonic detection degradation for FOCUSED/BROAD/COT profiles, while HYDRA remains near-chance (${\sim}$0.52) at original intensity regardless of scale.
     \item \textbf{Adversarial evasion framework}: Three evasion strategies---feature clamping, gradual escalation, and mimicry---quantifying the robustness of UBFS-based detection. Mimicry is the most effective, degrading ASI05 detection by up to 25\%.
     \item \textbf{Temporal window transfer}: Window ablation showing 10 spans optimal for Isolation Forest on both TRAIL and ATBench, paralleling Paper~1's 7-day optimal window---a structural insight about the primacy of early warning signals.
     \item \textbf{MITRE ATLAS mapping}: Five ATLAS adversarial ML techniques mapped to UBFS perturbation profiles, all landing in the ``strong'' detection tier ($>$0.93 AUC-ROC for IF/LSTM)---no new blind spots beyond OWASP ASI02.
@@ -149,7 +151,7 @@ We use four datasets spanning both domains:
 
 \textbf{TRACE}~\cite{pan2024trace}: 517 agent trajectories capturing reward hacking in iterative self-refinement. Agents produce correct outputs through illegitimate means---structurally normal traces with semantically wrong behaviour. After UBFS extraction: 517 samples, binary labels.
 
-\textbf{Synthetic OWASP}: Anomalies injected into TRAIL traces to simulate five OWASP ASI categories (ASI01 Agent Goal Hijack, ASI02 Tool Misuse, ASI05 Memory Poisoning, ASI09 Excessive Agency, ASI10 Rogue Agents). 12--13 anomalous samples per category. The injection method modifies UBFS features to match the expected structural signature of each attack type---e.g., ASI05 corrupts volume and output features; ASI02 modifies only privilege features while preserving all behavioural structure.
+\textbf{Synthetic OWASP}: Anomalies injected into TRAIL traces to simulate five OWASP ASI categories (ASI01 Agent Goal Hijack, ASI02 Tool Misuse, ASI05 Memory Poisoning, ASI09 Excessive Agency, ASI10 Rogue Agents). With anomaly ratio 0.5: ${\sim}$30 anomalous samples per category per seed. The injection method modifies UBFS features to match the expected structural signature of each attack type---e.g., ASI05 corrupts volume and output features; ASI02 modifies only privilege features while preserving all behavioural structure.
 
 \textbf{ATBench}~\cite{atbench2026}: 500 multi-turn agent trajectories with tool calls, binary safety labels, and fine-grained risk categorisation mapped to OWASP ASI categories (ASI01, ASI02, ASI04, ASI05, ASI06, ASI10). After UBFS extraction: 500 samples. Used for MCP transfer validation (Experiment~7) and hybrid detection (Experiment~8).
 
@@ -175,13 +177,13 @@ Each model represents a different assumption about what makes behaviour anomalou
 \subsection{Experimental Protocol}
 \label{sec:protocol}
 
-We run eleven experiments, each with 5 random seeds (42--46). Experiments 1--4 address \RQ{1}--\RQ{3} (cross-domain transfer, detection mapping, governance assumptions). Experiments 5--8 address \RQ{4} (real-world attack validation and semantic augmentation). Experiments 9--11 stress-test robustness, temporal sensitivity, and taxonomic generality.
+We run thirteen experiments, each with 5 random seeds (42--46). Experiments 1--4 address \RQ{1}--\RQ{3} (cross-domain transfer, detection mapping, governance assumptions). Experiments 5--8 address \RQ{4} (real-world attack validation and semantic augmentation). Experiments 9--11 stress-test robustness, temporal sensitivity, and taxonomic generality. Experiments 12--13 provide real-data validation and sensitivity analysis.
 
 \textbf{Experiment~1} (Within-domain baselines): Train and evaluate each model within each domain separately. Establishes what is detectable in isolation. [\RQ{1}]
 
 \textbf{Experiment~2} (Cross-domain transfer): Train on one domain, evaluate on another. Tests whether anomaly knowledge transfers across the insider/agent boundary via UBFS. [\RQ{1}]
 
-\textbf{Experiment~3} (OWASP detection matrix): Evaluate IF and DC on synthetic OWASP anomalies injected into TRAIL traces.\footnote{Experiments 3 and 7 report IF and DC only. The LSTM Autoencoder operates on pseudo-sequences of length 1 for these point-in-time synthetic features, providing no temporal modelling advantage; Experiments 5, 6, and 8--11 include all three models.} Maps detections to the OWASP Top~10 for Agentic Applications. [\RQ{2}]
+\textbf{Experiment~3} (OWASP detection matrix): Evaluate all three models on synthetic OWASP anomalies (${\sim}$30 per category, 5 seeds) injected into TRAIL traces, with bootstrap 95\% confidence intervals and Wilcoxon signed-rank tests between detection tiers.\footnote{Experiment~7 reports IF and DC only. The LSTM Autoencoder operates on pseudo-sequences of length 1 for these cross-domain transfer features, providing no temporal modelling advantage.} Maps detections to the OWASP Top~10 for Agentic Applications. [\RQ{2}]
 
 \textbf{Experiment~4} (Governance audit): Compare feature distributions across domains using KL divergence. Identifies which normality assumptions transfer and what biases they carry. [\RQ{3}]
 
@@ -198,6 +200,10 @@ We run eleven experiments, each with 5 random seeds (42--46). Experiments 1--4 a
 \textbf{Experiment~10} (Temporal window ablation): Vary the observation window (5, 10, 20, full trace spans) on TRAIL and ATBench, testing whether the insider-domain finding that short windows suffice transfers to agent monitoring. [\RQ{1}]
 
 \textbf{Experiment~11} (MITRE ATLAS mapping): Map five ATLAS adversarial ML techniques~\cite{mitre2024atlas} to UBFS perturbation profiles, testing whether the detection framework generalises beyond OWASP to the broader adversarial ML taxonomy. [\RQ{2}]
+
+\textbf{Experiment~12} (Real-data OWASP validation): Evaluate all three models on 500 real ATBench trajectories per OWASP category, comparing UBFS-20 and UBFS-28. Computes Spearman rank correlation between synthetic (Experiment~3) and real-data detection rankings to quantify synthetic methodology bias. [\RQ{2}, \RQ{4}]
+
+\textbf{Experiment~13} (Distillation sensitivity): Scale distillation attack intensity in feature space at [0.25$\times$, 0.5$\times$, 1.0$\times$, 2.0$\times$] for all four sub-profiles, measuring how detection degrades with lower attack intensity. [\RQ{4}]
 
 For all experiments, models are trained on the ``normal'' subset of the source domain and evaluated on the full target domain (normal + anomalous). AUC-ROC is the primary metric, enabling comparison across datasets with different class balances. We also report Recall@5\%FPR and Recall@10\%FPR for experiments where these thresholds are operationally meaningful.
 
@@ -291,31 +297,32 @@ TRACE $\to$ TRAIL & DC & 0.496 & 0.631 & +0.135 \\
 \subsection{OWASP Detection Matrix}
 \label{sec:owasp}
 
-Table~\ref{tab:owasp} maps detection performance to OWASP ASI categories, revealing three distinct tiers.
+Table~\ref{tab:owasp} maps detection performance to OWASP ASI categories, revealing three distinct tiers. All three models are evaluated across 5 seeds with bootstrap 95\% confidence intervals; Wilcoxon signed-rank tests confirm each tier boundary is statistically significant ($p{=}0.031$ for all adjacent pairs).
 
 \begin{table}[htbp]
-\caption{OWASP ASI Detection Matrix (AUC-ROC)}
+\caption{OWASP ASI Detection Matrix (Synthetic, AUC-ROC $\pm$ std, 5 seeds)}
 \label{tab:owasp}
 \centering
-\begin{tabular}{lcc}
+\small
+\begin{tabular}{lccc}
 \toprule
-\textbf{OWASP Category} & \textbf{IF} & \textbf{DC} \\
+\textbf{OWASP Category} & \textbf{IF} & \textbf{LSTM} & \textbf{DC} \\
 \midrule
-ASI05 Memory Poisoning & $\mathbf{0.944}$ & $\mathbf{0.969}$ \\
-ASI09 Excessive Agency & $0.844$ & $0.824$ \\
-ASI10 Rogue Agents & $0.721$ & $0.741$ \\
-ASI01 Goal Hijack & $0.663$ & $0.555$ \\
+ASI05 Mem.\ Poisoning & $.920{\pm}.010$ & $\mathbf{.975{\pm}.006}$ & $.981{\pm}.013$ \\
+ASI09 Excess.\ Agency & $.858{\pm}.019$ & $.831{\pm}.014$ & $.852{\pm}.020$ \\
+ASI10 Rogue Agents & $.729{\pm}.021$ & $.696{\pm}.035$ & $.730{\pm}.032$ \\
+ASI01 Goal Hijack & $.642{\pm}.034$ & $.637{\pm}.031$ & $.621{\pm}.039$ \\
 \addlinespace
-ASI02 Tool Misuse & $0.568$ & $0.593$ \\
+ASI02 Tool Misuse & $.520{\pm}.026$ & $.510{\pm}.019$ & $.524{\pm}.038$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Tier 1: Detectable (ASI05).} Memory poisoning produces dramatic structural anomalies---corrupted outputs, unusual token volumes, broken execution patterns. Both models detect it with near-perfect accuracy (0.944--0.969).
+\textbf{Tier 1: Detectable (ASI05).} Memory poisoning produces dramatic structural anomalies---corrupted outputs, unusual token volumes, broken execution patterns. All models detect it above 0.92, with LSTM achieving 0.975 [CI: 0.970, 0.980].
 
-\textbf{Tier 2: Moderate (ASI09, ASI10, ASI01).} Excessive agency and rogue agent behaviour produce measurable structural deviations: more tool calls, broader scope, higher privilege. Detection ranges from 0.663 to 0.844, sufficient for triage but not reliable standalone.
+\textbf{Tier 2: Moderate (ASI09, ASI10, ASI01).} Excessive agency and rogue agent behaviour produce measurable structural deviations: more tool calls, broader scope, higher privilege. Detection ranges from 0.62 to 0.86, sufficient for triage but not reliable standalone.
 
-\textbf{Tier 3: Blind spot (ASI02).} Tool Misuse achieves only 0.568--0.593 AUC-ROC---barely above chance. The agent calls the right tools in the right order with the right sequencing; it simply uses escalated privileges or targets unauthorised resources. The behavioural \textit{structure} is identical to legitimate use. This is the AI equivalent of an insider using their real credentials to do something illegitimate---structural anomaly detection cannot distinguish it from normal work.
+\textbf{Tier 3: Blind spot (ASI02).} Tool Misuse achieves only 0.51--0.52 AUC-ROC---barely above chance. The agent calls the right tools in the right order with the right sequencing; it simply uses escalated privileges or targets unauthorised resources. The behavioural \textit{structure} is identical to legitimate use. This is the AI equivalent of an insider using their real credentials to do something illegitimate---structural anomaly detection cannot distinguish it from normal work. However, as Experiment~12 reveals, this blind spot is partially an artifact of circular synthetic methodology (Section~\ref{sec:real_owasp}).
 
 \begin{figure}[htbp]
 \centering
@@ -390,20 +397,21 @@ Experiment~6 tests whether splitting a malicious objective into innocent-appeari
 \caption{Decomposition Evasion (AUC-ROC, 5 seeds)}
 \label{tab:decomposition}
 \centering
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Model} & \textbf{Direct} & \textbf{Decomposed} & \textbf{$\Delta$} \\
+\textbf{Model} & \textbf{Direct} & \textbf{Decomposed} & \textbf{$\Delta$} & \textbf{$p$} \\
 \midrule
-Isolation Forest & $0.774$ & $0.723$ & $-0.051$ \\
-LSTM Autoencoder & $0.718$ & $0.711$ & $-0.007$ \\
-Deep Clustering & $0.774$ & $0.710$ & $-0.064$ \\
+Isolation Forest & $0.774$ & $0.723$ & $-0.051$ & $0.031^{*}$ \\
+LSTM Autoencoder & $0.718$ & $0.711$ & $-0.007$ & $0.094$ \\
+Deep Clustering & $0.774$ & $0.710$ & $-0.064$ & $0.031^{*}$ \\
 \bottomrule
+\multicolumn{5}{l}{\footnotesize $^{*}p{<}0.05$, Wilcoxon signed-rank, one-sided} \\
 \end{tabular}
 \end{table}
 
-Decomposition costs 5--6\% detection power for IF and DC (std $<$0.02 across 5 seeds), with LSTM showing near-invariance ($-0.007$). The IF and DC drops exceed their respective within-seed standard deviations, indicating a consistent effect rather than noise. The pattern mirrors insider threat evasion: in~\cite{rimal2026insider}, gradual escalation (Scenario~2) dropped detection from 69\% to 3\%. The agent-domain effect is smaller in absolute terms because the direct attacks are already harder to detect (0.72--0.77 vs.\ Scenario~1's 0.69 recall). But the mechanism is identical---spreading malicious activity across multiple steps reduces each step's anomaly score below the detection threshold.
+Decomposition costs 5--6\% detection power for IF and DC, with both drops statistically significant ($p{=}0.031$, Wilcoxon signed-rank). LSTM shows near-invariance ($\Delta{=}-0.007$, $p{=}0.094$, not significant). The pattern mirrors insider threat evasion: in~\cite{rimal2026insider}, gradual escalation (Scenario~2) dropped detection from 69\% to 3\%. The agent-domain effect is smaller in absolute terms because the direct attacks are already harder to detect (0.72--0.77 vs.\ Scenario~1's 0.69 recall). But the mechanism is identical---spreading malicious activity across multiple steps reduces each step's anomaly score below the detection threshold.
 
-The LSTM's robustness to decomposition is notable. Temporal models capture the \textit{cumulative} effect of a sequence rather than scoring individual actions. A decomposed attack still produces an unusual trajectory even if each step appears innocent. This suggests that sequence-aware models may be more resistant to ``boiling frog'' evasion than point-in-time detectors.
+The LSTM's robustness to decomposition is notable and statistically distinguishable from IF/DC. Temporal models capture the \textit{cumulative} effect of a sequence rather than scoring individual actions. A decomposed attack still produces an unusual trajectory even if each step appears innocent. This suggests that sequence-aware models may be more resistant to ``boiling frog'' evasion than point-in-time detectors.
 
 \subsection{MCP Transfer Generalisation}
 \label{sec:mcp}
@@ -576,6 +584,68 @@ T0042 Verify      & $.975{\pm}.007$ & $.964{\pm}.013$ & $.830{\pm}.051$ \\
 
 \textbf{T0043 (Adversarial Data Crafting) is the weakest.} At 0.779 AUC-ROC for DC, it is the closest ATLAS technique to the moderate tier. Its SCOPE signature (broad resource exploration) partially overlaps with normal multi-tool agent behaviour, making it harder to distinguish. This is the ATLAS analogue of ASI01 (Goal Hijacking)---both involve diverse tool usage that could be legitimate.
 
+\subsection{Real-Data OWASP Validation}
+\label{sec:real_owasp}
+
+Experiment~12 tests whether the synthetic OWASP detection tiers from Experiment~3 hold on real data. The synthetic methodology is circular: perturbation profiles define exact UBFS modifications, then models ``detect'' those same modifications. ATBench provides 500 real agent trajectories with ground-truth OWASP labels, breaking this circularity.
+
+\begin{table}[htbp]
+\caption{Real-Data OWASP Detection on ATBench (AUC-ROC, 5 seeds)}
+\label{tab:real_owasp}
+\centering
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Model} & \textbf{Feat.} & \textbf{ASI01} & \textbf{ASI02} & \textbf{ASI05} & \textbf{ASI06} & \textbf{ASI10} \\
+\midrule
+\multirow{2}{*}{IF}
+ & -20 & .843 & .860 & .877 & .863 & .765 \\
+ & -28 & $\mathbf{.943}$ & $\mathbf{.940}$ & $\mathbf{.934}$ & $\mathbf{.942}$ & $\mathbf{.877}$ \\
+\addlinespace
+\multirow{2}{*}{LSTM}
+ & -20 & .785 & .812 & .800 & .796 & .714 \\
+ & -28 & .857 & .860 & .811 & .835 & .823 \\
+\addlinespace
+\multirow{2}{*}{DC}
+ & -20 & .894 & .903 & .915 & .900 & .851 \\
+ & -28 & .926 & .921 & .903 & .914 & .873 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three findings emerge from Table~\ref{tab:real_owasp}.
+
+\textbf{The ASI02 blind spot is a synthetic artifact.} On real ATBench data, ASI02 achieves 0.86--0.94 AUC-ROC across all models---far above the 0.51--0.52 seen with synthetic injection in Experiment~3. Real-world tool misuse produces structurally visible anomalies (unusual parameter combinations, atypical tool sequences) that the circular synthetic profiles---designed to modify only the privilege dimension---cannot capture.
+
+\textbf{UBFS-28 consistently improves real-data detection.} Semantic features add 5--13\% across all categories and models, with the largest gains on ASI04 (IF: $+$13.3\%) and ASI10 (IF: $+$11.3\%). Unlike the synthetic results of Experiment~8, where UBFS-28 failed to close ASI02, on real data UBFS-28 improves ASI02 by 4.8--8.1\% depending on model.
+
+\textbf{Synthetic profiling has weak rank correlation with real detection.} Spearman $\rho$ between Experiment~3 and Experiment~12 per-category AUC-ROC is 0.20 (IF, $p{=}0.80$) and $-0.40$ (LSTM, $p{=}0.60$). The synthetic profiles systematically underestimate ASI01 and ASI02 while slightly overestimating ASI05. This validates the need for real-data benchmarks: synthetic OWASP profiling provides a useful lower bound but poor absolute calibration.
+
+\subsection{Distillation Sensitivity}
+\label{sec:sensitivity}
+
+Experiment~13 tests how detection degrades as distillation attack intensity decreases, scaling perturbations in UBFS feature space: $\mathbf{x}_{\text{scaled}} = \boldsymbol{\mu}_{\text{normal}} + s \cdot (\mathbf{x}_{\text{attack}} - \boldsymbol{\mu}_{\text{normal}})$ for scale factors $s \in \{0.25, 0.5, 1.0, 2.0\}$.
+
+\begin{table}[htbp]
+\caption{Distillation Sensitivity (IF AUC-ROC, 5 seeds)}
+\label{tab:sensitivity}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Profile} & $\mathbf{0.25\times}$ & $\mathbf{0.5\times}$ & $\mathbf{1.0\times}$ & $\mathbf{2.0\times}$ \\
+\midrule
+FOCUSED & $.959$ & $.979$ & $.995$ & $1.000$ \\
+BROAD & $.789$ & $.835$ & $.919$ & $.965$ \\
+COT & $.801$ & $.850$ & $.895$ & $.959$ \\
+HYDRA & $.678$ & $.632$ & $.519$ & $.851$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{FOCUSED/BROAD/COT degrade monotonically.} As attack intensity decreases from $2.0\times$ to $0.25\times$, detection drops predictably (Table~\ref{tab:sensitivity}). FOCUSED remains highly detectable even at quarter intensity (IF: 0.959), confirming that massive-volume extraction cannot be made stealthy through attenuation. COT and BROAD converge toward 0.80 at $0.25\times$---still detectable, but approaching the moderate tier.
+
+\textbf{HYDRA shows non-monotonic behaviour.} At $1.0\times$ (original profile), HYDRA achieves only 0.52---near chance, as expected for near-normal per-account behaviour. But at $0.25\times$ (even closer to normal), detection paradoxically improves to 0.68. The explanation: scaling toward the normal mean makes all anomalous samples cluster tightly around the centroid, creating an unusual density that Isolation Forest's path-length metric detects. At $2.0\times$, HYDRA overshoots normal bounds entirely (0.85), becoming trivially detectable. The practical implication: HYDRA's $1.0\times$ profile sits at the optimal evasion point.
+
 % ============================================================================
 \section{Governance Analysis}
 \label{sec:governance}
@@ -660,13 +730,15 @@ The boundary is crisp: behavioural anomaly detection catches \textit{how} someth
 
 \subsection{Real-World Validation}
 
-The Anthropic disclosures of February 2026~\cite{anthropic2026distillation} provide unplanned validation of three findings from this paper. First, the GTG-1002 espionage campaign used Claude Code with MCP tools as an autonomous agent---confirming the structural equivalence between insider threat and agent threat patterns that underpins our transfer results (Experiments~1--2, 7). Second, the campaign used task decomposition (splitting espionage into ``defensive testing'' subtasks) as its primary evasion strategy---the same mechanism quantified in Experiment~6, where decomposition costs 5--6\% detection power. Third, the distillation attacks distributed traffic across 20,000+ accounts so per-account behaviour fell within normal bounds---confirming the HYDRA blind spot (0.54 AUC-ROC) identified in Experiment~5. Anthropic detected these attacks through metadata correlation and network-level analysis, not per-account behavioural monitoring---precisely because per-entity monitoring cannot see coordination patterns. Experiment~9 further quantifies this: mimicry evasion degrades ASI05 detection by 25\% for LSTM, confirming that volume-dependent detection is brittle against adversaries who know the monitoring thresholds.
+The Anthropic disclosures of February 2026~\cite{anthropic2026distillation} provide unplanned validation of three findings from this paper. First, the GTG-1002 espionage campaign used Claude Code with MCP tools as an autonomous agent---confirming the structural equivalence between insider threat and agent threat patterns that underpins our transfer results (Experiments~1--2, 7). Second, the campaign used task decomposition (splitting espionage into ``defensive testing'' subtasks) as its primary evasion strategy---the same mechanism quantified in Experiment~6, where decomposition costs 5--6\% detection power for IF and DC ($p{=}0.031$). Third, the distillation attacks distributed traffic across 20,000+ accounts so per-account behaviour fell within normal bounds---confirming the HYDRA blind spot (0.52 AUC-ROC) identified in Experiment~5, and Experiment~13's finding that HYDRA sits at the optimal evasion intensity. Anthropic detected these attacks through metadata correlation and network-level analysis, not per-account behavioural monitoring---precisely because per-entity monitoring cannot see coordination patterns. Experiment~9 further quantifies this: mimicry evasion degrades ASI05 detection by 25\% for LSTM.
+
+Experiment~12 adds an important methodological caveat: the ASI02 ``blind spot'' from Experiment~3's synthetic profiling does not replicate on real data (0.86--0.94 AUC-ROC on ATBench vs.\ 0.51--0.52 synthetic). Circular synthetic methodology---where profiles define perturbations and models detect those same perturbations---underestimates real detection performance for categories where real attacks produce richer structural signatures than the synthetic profile assumes.
 
 \subsection{Limitations}
 
 \textbf{UBFS sparsity.} Of 20 UBFS features, 7 show zero variance in both domains (NaN KL divergence in the governance audit). The effective dimensionality is 13. Feature engineering for richer cross-domain overlap is needed.
 
-\textbf{Synthetic OWASP.} The OWASP detection matrix uses synthetically injected anomalies, not real agent attacks. Synthetic anomalies may overestimate or underestimate the structural visibility of real-world attacks.
+\textbf{Synthetic OWASP.} The OWASP detection matrix (Experiment~3) uses synthetically injected anomalies with circular methodology. Experiment~12 demonstrates this underestimates real detection: Spearman $\rho$ between synthetic and real rankings is only 0.20. Real-data validation should supplement synthetic profiling in future work.
 
 \textbf{Small agent datasets.} TRAIL (148 samples) and TRACE (517 samples) are orders of magnitude smaller than CMU-CERT (329,000 user-days). Statistical power is limited for agent-domain conclusions.
 
@@ -680,7 +752,7 @@ The Anthropic disclosures of February 2026~\cite{anthropic2026distillation} prov
 
 Three directions follow from the experimental results.
 
-\textbf{Authorisation verification, not better features.} Experiment~8 demonstrates that semantic feature augmentation does not close the ASI02 blind spot. The missing signal is not \textit{what} the agent does or \textit{why} it says it is doing it, but \textit{whether it was authorised to do it}. Future work should integrate runtime authorisation checks---signed capability grants, per-action permission verification, chain-of-custody attestation---into the monitoring pipeline. This is an architectural change, not a feature engineering problem.
+\textbf{Authorisation verification alongside better features.} Experiment~8 shows that semantic augmentation fails to close the synthetic ASI02 blind spot, while Experiment~12 shows it improves real-data ASI02 by 4.8--8.1\%. The synthetic blind spot is partially methodological, but the principle stands: intent-based misuse where all parameters are legitimate remains hard to detect. Future work should combine UBFS-28 (effective on real data) with runtime authorisation checks---signed capability grants, per-action permission verification---for the cases where behavioural monitoring still falls short.
 
 \textbf{Coordination-aware detection.} The HYDRA blind spot (Experiment~5) demonstrates that per-entity monitoring cannot detect distributed attacks. Detection requires cross-entity correlation: aggregate volume tracking, account network analysis, and temporal coordination fingerprinting. Anthropic's detection of the distillation attacks relied on exactly these signals~\cite{anthropic2026distillation}. Integrating coordination features into UBFS would address this second structural blind spot.
 
@@ -700,9 +772,9 @@ Seven findings, in order of surprise.
 
 \textbf{Second, there are two structural blind spots, not one.} Tool Misuse (ASI02) is an \textit{intent} blind spot: the agent does the right things for the wrong reasons. Distributed extraction (HYDRA) is a \textit{coordination} blind spot: each entity behaves normally, but the aggregate is anomalous. Both achieve ${\sim}$0.50--0.54 AUC-ROC. Both are fundamental to per-entity behavioural monitoring.
 
-\textbf{Third, better features do not close the intent blind spot.} Augmenting UBFS with 8 semantic dimensions (Experiment~8) dramatically improves detection for four OWASP categories---LSTM on ASI01 jumps from 0.63 to 0.94 ($+0.31$)---but leaves ASI02 at ${\sim}$0.56. The missing signal is authorisation context, not intent features. Closing ASI02 requires architectural changes to how agents are authorised, not better monitoring.
+\textbf{Third, synthetic blind spots require real-data validation.} Experiment~3's synthetic profiling identifies ASI02 as a blind spot (${\sim}$0.52 AUC-ROC), and Experiment~8's semantic augmentation leaves it at ${\sim}$0.56. But Experiment~12 reveals this is partially a circular methodology artifact: real ATBench data yields 0.86--0.94 on ASI02, and UBFS-28 adds 5--13\% across all categories on real data. The lesson: synthetic profiling provides useful lower bounds but not absolute calibration (Spearman $\rho{=}0.20$ between synthetic and real rankings).
 
-\textbf{Fourth, evasion patterns transfer across domains.} Task decomposition costs 5--6\% detection power in the agent domain (Experiment~6), mirroring the ``boiling frog'' pattern that drops insider threat detection from 69\% to 3\% in~\cite{rimal2026insider}. The Anthropic-disclosed GTG-1002 campaign used exactly this strategy. The threat models port. So do the evasion strategies.
+\textbf{Fourth, evasion patterns transfer across domains.} Task decomposition costs 5--6\% detection power for IF and DC ($p{=}0.031$, Experiment~6), while LSTM shows near-invariance ($-0.7\%$, $p{=}0.094$), mirroring the ``boiling frog'' pattern that drops insider threat detection from 69\% to 3\% in~\cite{rimal2026insider}. The Anthropic-disclosed GTG-1002 campaign used exactly this strategy. Distillation sensitivity analysis (Experiment~13) further shows that detection degrades monotonically with attack intensity for FOCUSED/BROAD/COT, but HYDRA sits at an optimal evasion intensity where attenuation paradoxically increases detection.
 
 \textbf{Fifth, high detection rates are brittle.} Experiment~9 shows that mimicry evasion---copying a normal neighbour's features while preserving the attack payload---degrades ASI05 detection by up to 25\%. The categories that \textit{appear} most detectable are the ones most vulnerable to informed adversaries. ASI02, paradoxically, is immune to evasion because it is already at the detection floor. Robustness and detectability are inversely correlated.
 
