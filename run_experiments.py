@@ -557,7 +557,7 @@ def experiment_3():
     base_traces = trail["traces"]
     print(f"  Using {len(base_traces)} TRAIL traces as base")
 
-    categories = ["ASI01", "ASI02", "ASI04", "ASI05", "ASI09", "ASI10"]
+    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
 
     models_spec = {
         "IsolationForest": (
