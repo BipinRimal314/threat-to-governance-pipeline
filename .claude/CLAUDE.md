@@ -66,7 +66,7 @@ PyTorch device config in `configs/model_configs.yaml` → `device: "auto"` (dete
 | Exp | What | Key Result |
 |-----|------|------------|
 | 1 | Within-domain baselines | DC 0.897 on TRAIL; TRACE ~0.50 (undetectable) |
-| 2 | Cross-domain transfer | **CERT→TRAIL: 0.711 (97% retention)** |
+| 2 | Cross-domain transfer | **CERT→TRAIL: 0.731→0.711 (within seed noise ±0.047; "transfer within noise", NOT "97% retention")** |
 | 3 | OWASP detection matrix | **ASI02 Tool Misuse: 0.57-0.59 (blind spot)** |
 | 4 | Governance assumptions | 6 embedded assumptions audited |
 
@@ -343,7 +343,7 @@ def load_agent_harm():
 
 **Goal:** Test cross-domain transfer on MCP-specific tool traces. The Anthropic attack used MCP tools. If CERT→MCP transfer works like CERT→TRAIL, the pipeline generalizes beyond the original datasets.
 
-**Hypothesis:** CERT→MCP transfer retains >90% detection power (comparable to CERT→TRAIL's 97%). MCP-specific tool abuse profiles map to existing OWASP categories.
+**Hypothesis:** CERT→MCP transfer shows minimal degradation (comparable to CERT→TRAIL, which changed only within seed noise). NOTE: the robust, statistically-clean transfer result is TRAIL→ATBench (104.8%, balanced benchmark); the CERT→TRAIL "97% retention" framing was dropped because the 0.019 gap is within seed std ±0.047 and TRAIL is ~97% positive. MCP-specific tool abuse profiles map to existing OWASP categories.
 
 **New Datasets:**
 
@@ -382,7 +382,7 @@ Map trajectories to OTel format for UBFS extraction.
    - **Phase C — OWASP mapping:** Run synthetic OWASP injection on MCP traces, compare detection matrix to Exp 3 results
    - Report transfer retention percentages alongside Exp 2 results
 
-4. Key comparison: CERT→TRAIL retention was 97% (0.731→0.711). Does CERT→MCP show similar or different retention? If similar, the UBFS bridge generalizes. If different, analyze which UBFS dimensions explain the gap.
+4. Key comparison: CERT→TRAIL changed 0.731→0.711 (within seed noise ±0.047 — framed as "transfer within noise", not "97% retention"). Does CERT→MCP show similar minimal degradation? If similar, the UBFS bridge generalizes. If different, analyze which UBFS dimensions explain the gap.
 
 **Expected output:** `results/tables/experiment_7_mcp_transfer.json`
 
