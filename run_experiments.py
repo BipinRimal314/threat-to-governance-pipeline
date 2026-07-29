@@ -1702,6 +1702,11 @@ def experiment_9():
 
     categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
 
+    # Escalation grid: one fixed resolution for every category, model
+    # and seed, so alpha values stay comparable across cells.
+    N_ALPHA_STEPS = 50
+    ALPHAS = np.linspace(0.0, 1.0, N_ALPHA_STEPS + 1)
+
     models_spec = {
         "IsolationForest": (
             IsolationForestDetector,
@@ -1761,6 +1766,16 @@ def experiment_9():
                 )
             else:
                 baseline_scores = model.score(X)
+
+            # Detection threshold: 95th percentile of the scores the
+            # model assigns to its own normal training data. Constant
+            # for this (model, seed), so compute it once here rather
+            # than re-deriving it inside the escalation loop.
+            if name == "LSTMAutoencoder":
+                train_scores = model.score(X_train[:, np.newaxis, :])
+            else:
+                train_scores = model.score(X_train)
+            threshold = float(np.percentile(train_scores, 95))
 
             normal_cat_mask = np.array([
                 c == "" for c in owasp_cats
@@ -1836,64 +1851,65 @@ def experiment_9():
                     })
 
             # --- 9B: Gradual escalation ---
-            # For each category, pick a representative anomalous
-            # profile and interpolate from normal mean
-            normal_mean = X_normal.mean(axis=0)
+            # Each anomalous trace is walked from its nearest normal
+            # neighbour to its own anomalous profile. Interpolating
+            # per-sample keeps the trajectory in a region of feature
+            # space that real traces occupy; interpolating between the
+            # normal mean and a category mean does not, and washes out
+            # the per-category spikes that carry the signal.
             for cat in categories:
-                cat_idx = [
-                    i for i, c in enumerate(owasp_cats)
-                    if c == cat
-                ]
-                if not cat_idx:
+                cat_idx = np.array([
+                    i for i, c in enumerate(owasp_cats) if c == cat
+                ])
+                if cat_idx.size == 0 or len(X_normal) == 0:
                     continue
-                # Use the mean anomalous profile for this category
-                anom_profile = X[cat_idx].mean(axis=0)
 
-                n_steps_list = [5, 10, 20, 50]
-                detection_step = n_steps_list[-1]
-                alpha_at_detection = 1.0
+                X_cat = X[cat_idx]
+                # Attacker's starting disguise: the normal trace this
+                # anomaly already looks most like.
+                nn = np.argmin(
+                    cdist(X_cat, X_normal, metric="euclidean"),
+                    axis=1,
+                )
+                X_start = X_normal[nn]
 
-                for n_steps in n_steps_list:
-                    found = False
-                    for step in range(n_steps + 1):
-                        alpha = step / n_steps
-                        interp = (
-                            (1 - alpha) * normal_mean
-                            + alpha * anom_profile
-                        )
-                        interp_2d = interp.reshape(1, -1)
+                # (n_alphas, n_samples, n_dims), scored in one pass.
+                traj = (
+                    (1 - ALPHAS)[:, None, None] * X_start[None, :, :]
+                    + ALPHAS[:, None, None] * X_cat[None, :, :]
+                )
+                flat = traj.reshape(-1, X.shape[1])
+                if name == "LSTMAutoencoder":
+                    flat_scores = model.score(flat[:, np.newaxis, :])
+                else:
+                    flat_scores = model.score(flat)
+                step_scores = np.asarray(flat_scores).reshape(
+                    len(ALPHAS), cat_idx.size
+                )
 
-                        if name == "LSTMAutoencoder":
-                            sc = model.score(
-                                interp_2d[:, np.newaxis, :]
-                            )
-                        else:
-                            sc = model.score(interp_2d)
+                above = step_scores > threshold
+                # Detection rate per alpha: the curve, not a single
+                # crossing point. above[0] is the alpha=0 (fully
+                # normal) rate and should sit near 0.05 by
+                # construction — it is the sanity check on threshold
+                # calibration.
+                detection_rate = above.mean(axis=1)
 
-                        # Detection threshold: 95th percentile
-                        # of normal training scores
-                        if name == "LSTMAutoencoder":
-                            train_sc = model.score(
-                                X_train[:, np.newaxis, :]
-                            )
-                        else:
-                            train_sc = model.score(X_train)
-                        threshold = np.percentile(train_sc, 95)
-
-                        if sc[0] > threshold:
-                            detection_step = step
-                            alpha_at_detection = alpha
-                            found = True
-                            break
-
-                    if found:
-                        break
+                # Samples never flagged at ANY alpha are recorded as
+                # such. The previous version silently wrote them down
+                # as "detected at alpha=1.0", making no-detection and
+                # detection-on-arrival indistinguishable.
+                ever = above.any(axis=0)
+                alpha_first = ALPHAS[np.argmax(above, axis=0)][ever]
 
                 escalation_per_cat[cat].append({
-                    "detection_step": int(detection_step),
-                    "alpha_at_detection": float(
-                        alpha_at_detection
+                    "detection_rate_curve": detection_rate.tolist(),
+                    "never_detected_frac": float(1.0 - ever.mean()),
+                    "alpha_first_median": (
+                        float(np.median(alpha_first))
+                        if alpha_first.size else None
                     ),
+                    "n_samples": int(cat_idx.size),
                 })
 
             print("done")
@@ -1956,25 +1972,51 @@ def experiment_9():
 
             # Escalation
             if escalation_per_cat[cat]:
-                steps = [
-                    r["detection_step"]
+                curves = np.array([
+                    r["detection_rate_curve"]
+                    for r in escalation_per_cat[cat]
+                ])
+                never = [
+                    r["never_detected_frac"]
                     for r in escalation_per_cat[cat]
                 ]
-                alphas = [
-                    r["alpha_at_detection"]
+                medians = [
+                    r["alpha_first_median"]
                     for r in escalation_per_cat[cat]
+                    if r["alpha_first_median"] is not None
                 ]
                 results["escalation"].setdefault(
                     name, {}
                 )[cat] = {
-                    "detection_step": {
-                        "mean": float(np.mean(steps)),
-                        "std": float(np.std(steps)),
+                    "alphas": ALPHAS.tolist(),
+                    "detection_rate": {
+                        "mean": curves.mean(axis=0).tolist(),
+                        "std": curves.std(axis=0).tolist(),
                     },
-                    "alpha_at_detection": {
-                        "mean": float(np.mean(alphas)),
-                        "std": float(np.std(alphas)),
+                    # Detection rate once the agent has fully arrived
+                    # at the anomalous profile — the ceiling.
+                    "detection_rate_at_full": {
+                        "mean": float(curves[:, -1].mean()),
+                        "std": float(curves[:, -1].std()),
                     },
+                    # Detection rate on undisguised normal traces.
+                    # Should be ~0.05; anything else means the
+                    # threshold is miscalibrated.
+                    "false_positive_floor": {
+                        "mean": float(curves[:, 0].mean()),
+                        "std": float(curves[:, 0].std()),
+                    },
+                    "never_detected_frac": {
+                        "mean": float(np.mean(never)),
+                        "std": float(np.std(never)),
+                    },
+                    "alpha_first_median": (
+                        {
+                            "mean": float(np.mean(medians)),
+                            "std": float(np.std(medians)),
+                        }
+                        if medians else None
+                    ),
                 }
 
     # Summary
@@ -1995,14 +2037,37 @@ def experiment_9():
             row += f" {d:>7.1f}%"
         print(row)
 
-    print("\n  9B: Gradual Escalation (alpha at detection)")
+    print("\n  9B: Gradual Escalation")
+    print("      cells are: detection rate at full escalation"
+          " / median alpha at first detection")
+    header = f"  {'Model':<18s}"
+    for cat in categories:
+        header += f" {cat:>13s}"
+    print(header)
     for name in results["escalation"]:
         row = f"  {name:<18s}"
         for cat in categories:
-            a = results["escalation"][name].get(
+            e = results["escalation"][name].get(cat, {})
+            rate = e.get("detection_rate_at_full", {}).get("mean")
+            med = e.get("alpha_first_median")
+            med = med.get("mean") if med else None
+            if rate is None:
+                cell = "--"
+            elif med is None:
+                cell = f"{rate:.2f}/never"
+            else:
+                cell = f"{rate:.2f}/{med:.2f}"
+            row += f" {cell:>13s}"
+        print(row)
+
+    print("\n      alpha=0 false-positive floor (expect ~0.05):")
+    for name in results["escalation"]:
+        row = f"      {name:<18s}"
+        for cat in categories:
+            f0 = results["escalation"][name].get(
                 cat, {}
-            ).get("alpha_at_detection", {}).get("mean", 0)
-            row += f" {a:>8.2f}"
+            ).get("false_positive_floor", {}).get("mean")
+            row += f" {f0:>8.3f}" if f0 is not None else f" {'--':>8s}"
         print(row)
 
     print("\n  9C: Mimicry (AUC-ROC drop %)")
