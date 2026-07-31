@@ -11,40 +11,61 @@ import numpy as np
 
 from .metrics import compute_metrics
 
-# OWASP Top 10 for Agentic Applications (December 2025)
+# OWASP Top 10 for Agentic Applications, release of 9 December 2025.
+#
+# https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/
+#
+# These titles are the published ones and are checked against this constant by
+# tests/test_owasp_taxonomy.py. An earlier version of this file carried titles
+# from OWASP's pre-release "Agentic AI — Threats and Mitigations" material while
+# citing the December release, which put six of the ten identifiers against the
+# wrong name. If you are tempted to edit a title here, edit the test first.
+#
+# Names that are NOT in this taxonomy, however familiar: "Excessive Agency"
+# (OWASP LLM Top 10), "Cascading Hallucinations", "Inadequate Sandboxing",
+# "Unsafe Code Generation", "Supply Chain Compromise" (the ASI wording is
+# "Agentic Supply Chain Vulnerabilities", and it is ASI04, not ASI06).
 OWASP_CATEGORIES = {
     "ASI01": "Agent Goal Hijack",
     "ASI02": "Tool Misuse",
     "ASI03": "Identity & Privilege Abuse",
-    "ASI04": "Cascading Hallucinations",
-    "ASI05": "Memory Poisoning",
-    "ASI06": "Supply Chain Compromise",
-    "ASI07": "Unsafe Code Generation",
-    "ASI08": "Inadequate Sandboxing",
-    "ASI09": "Excessive Agency",
+    "ASI04": "Agentic Supply Chain Vulnerabilities",
+    "ASI05": "Unexpected Code Execution",
+    "ASI06": "Memory & Context Poisoning",
+    "ASI07": "Insecure Inter-Agent Communication",
+    "ASI08": "Cascading Failures",
+    "ASI09": "Human-Agent Trust Exploitation",
     "ASI10": "Rogue Agents",
 }
 
 # Mapping: which insider threat models are theoretically
-# suited for which OWASP risks
+# suited for which OWASP risks.
+#
+# Re-derived against the corrected taxonomy above. The previous version keyed
+# these affinities to identifiers whose meanings have since been corrected, so
+# every entry was reasoning about a different risk than its key named.
+#
+# Nothing reads this — it is documentation of design intent, not a code path —
+# so it has never influenced a reported result. Kept and corrected rather than
+# deleted because the reasoning is still the argument for which model suits
+# which risk.
 MODEL_CATEGORY_AFFINITY = {
     "IsolationForest": {
         "ASI02": 0.8,   # Feature combinations
         "ASI03": 0.7,   # Access pattern anomalies
-        "ASI09": 0.9,   # Action space breadth
+        "ASI04": 0.7,   # Tool inventory shifts when definitions are poisoned
         "ASI10": 0.6,   # General anomaly
     },
     "LSTMAutoencoder": {
         "ASI01": 0.9,   # Sequence deviation
-        "ASI04": 0.7,   # Reconstruction error on drift
-        "ASI05": 0.8,   # Injected temporal anomalies
-        "ASI07": 0.6,   # Sequence-level scoring
+        "ASI06": 0.8,   # Injected temporal anomalies from poisoned context
+        "ASI08": 0.7,   # Reconstruction error on drift as failures propagate
         "ASI10": 0.7,   # Persistent deviation
     },
     "DeepClustering": {
         "ASI03": 0.8,   # Divergent access clusters
-        "ASI06": 0.7,   # Out-of-distribution
-        "ASI08": 0.6,   # Boundary clusters
+        "ASI04": 0.7,   # Out-of-distribution components
+        "ASI07": 0.6,   # Boundary clusters between agents
         "ASI10": 0.8,   # Behavioural profiling
     },
 }

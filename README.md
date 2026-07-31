@@ -98,9 +98,11 @@ Synthetic anomalies injected into TRAIL traces, mapped to OWASP ASI categories:
 |------------|:----------:|:----------:|
 | ASI01 Goal Hijack | 0.663 | 0.555 |
 | ASI02 Tool Misuse | 0.568 | 0.593 |
-| ASI05 Memory Poisoning | **0.944** | **0.969** |
-| ASI09 Excessive Agency | 0.844 | 0.824 |
+| ASI06 Memory & Context Poisoning | **0.944** | **0.969** |
+| Excessive Agency † | 0.844 | 0.824 |
 | ASI10 Rogue Agents | 0.721 | 0.741 |
+
+† "Excessive Agency" is from the OWASP **LLM** Top 10, not the Agentic Top 10, which has no equivalent category. It is reported here because it models a real and distinct behaviour — an agent taking far more action than its task requires — but it does not carry an ASI identifier. Category labels follow the [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/) of 9 December 2025; earlier revisions of this table used names from OWASP's superseded *Agentic AI — Threats and Mitigations* material, which put six of ten identifiers against the wrong name. The numbers are unchanged — only the labels were wrong. `tests/test_owasp_taxonomy.py` now pins them.
 
 **Tool Misuse (ASI02) is a blind spot** (0.57-0.59 AUC-ROC). Both models struggle because tool misuse changes parameters without changing structural patterns. The tool is called correctly, with correct sequencing — it just uses escalated privileges. This is the AI equivalent of an employee using their legitimate access to do something illegitimate. Structural anomaly detection can't catch it. You need semantic understanding.
 
