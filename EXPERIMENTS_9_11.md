@@ -81,7 +81,7 @@ Save to `results/tables/experiment_9_adversarial.json`:
 ```
 
 **Expected results:**
-- Feature clamping: 15-30% AUC-ROC drop across categories. ASI05 (Memory Poisoning, currently 0.969) should drop most because its detection relies on volume spikes easily capped.
+- Feature clamping: 15-30% AUC-ROC drop across categories. ASI06 (Memory & Context Poisoning, currently 0.969) should drop most because its detection relies on volume spikes easily capped.
 - Gradual escalation: detection threshold around alpha=0.3-0.5 for most categories. ASI02 should never trigger (already near chance).
 - Mimicry: most effective evasion. Should push most categories below 0.70. Confirms that behavioral monitoring's vulnerability is structural.
 
@@ -242,7 +242,7 @@ Create a comparison table:
 
 | Detection Tier | OWASP Categories | ATLAS Techniques |
 |---------------|-----------------|-----------------|
-| Strong (>0.80) | ASI05, ASI09, ASI10 | ? |
+| Strong (>0.80) | ASI06, Excessive Agency (LLM Top 10), ASI10 | ? |
 | Moderate (0.60-0.80) | ASI01 | ? |
 | Blind spot (<0.60) | ASI02 | ? |
 

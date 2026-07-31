@@ -486,7 +486,7 @@ class SemanticFeatureExtractor:
 
 3. Create `experiment_8()` in `run_experiments.py`:
    - **Phase A — UBFS-20 vs UBFS-28 on ASI02:** Re-run Experiment 3 OWASP injection with both feature sets. Direct comparison: does adding semantic features improve ASI02 detection?
-   - **Phase B — Full OWASP matrix with UBFS-28:** Compare all OWASP categories across both feature sets. Semantic features should help ASI02 most, with minimal impact on already-detectable categories (ASI05, ASI09).
+   - **Phase B — Full OWASP matrix with UBFS-28:** Compare all OWASP categories across both feature sets. Semantic features should help ASI02 most, with minimal impact on already-detectable categories (ASI06, Excessive Agency).
    - **Phase C — Cross-domain transfer with UBFS-28:** Do semantic features help or hurt transfer? CERT has no semantic features (filled with 0.0), so CERT→TRAIL transfer might degrade. Test this explicitly.
 
 4. Report:

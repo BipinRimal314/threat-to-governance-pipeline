@@ -27,7 +27,10 @@ from src.data.trace_loader import (
     load_trace_dataset,
     trace_to_otel_format,
 )
-from src.data.synthetic_generator import generate_anomalous_traces
+from src.data.synthetic_generator import (
+    EXCESSIVE_AGENCY,
+    generate_anomalous_traces,
+)
 from src.evaluation.metrics import compute_metrics, run_multi_seed
 from src.evaluation.transfer_analysis import (
     evaluate_transfer,
@@ -557,7 +560,7 @@ def experiment_3():
     base_traces = trail["traces"]
     print(f"  Using {len(base_traces)} TRAIL traces as base")
 
-    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
+    categories = ["ASI01", "ASI02", "ASI06", EXCESSIVE_AGENCY, "ASI10"]
 
     models_spec = {
         "IsolationForest": (
@@ -660,10 +663,10 @@ def experiment_3():
                     }
 
         # Wilcoxon signed-rank tests between tier boundaries
-        # Tier ordering: ASI05 > ASI09 > ASI10 > ASI01 > ASI02
+        # Tier ordering: ASI06 > EXCESSIVE_AGENCY > ASI10 > ASI01 > ASI02
         tier_pairs = [
-            ("ASI05", "ASI09"),
-            ("ASI09", "ASI01"),
+            ("ASI06", EXCESSIVE_AGENCY),
+            (EXCESSIVE_AGENCY, "ASI01"),
             ("ASI01", "ASI02"),
         ]
         wilcoxon_results = {}
@@ -1352,7 +1355,7 @@ def experiment_8():
     y_trail = get_trail_labels(trail["annotations"])
     print(f"  Using {len(base_traces)} TRAIL traces as base")
 
-    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
+    categories = ["ASI01", "ASI02", "ASI06", EXCESSIVE_AGENCY, "ASI10"]
 
     models_spec = {
         "IsolationForest": (
@@ -1700,7 +1703,7 @@ def experiment_9():
     base_traces = trail["traces"]
     print(f"  Using {len(base_traces)} TRAIL traces as base")
 
-    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
+    categories = ["ASI01", "ASI02", "ASI06", EXCESSIVE_AGENCY, "ASI10"]
 
     # Escalation grid: one fixed resolution for every category, model
     # and seed, so alpha values stay comparable across cells.
@@ -2394,7 +2397,7 @@ def experiment_11():
     # Cross-taxonomy comparison
     # OWASP reference (from Exp 3 expected results)
     owasp_tiers = {
-        "strong": ["ASI05", "ASI09", "ASI10"],
+        "strong": ["ASI06", EXCESSIVE_AGENCY, "ASI10"],
         "moderate": ["ASI01"],
         "blind_spot": ["ASI02"],
     }

@@ -16,15 +16,28 @@ Structure:
         failure_mode (14 categories)
         real_world_harm (10 categories)
 
-OWASP mapping (risk_source → ASI code):
+OWASP mapping (risk_source → ASI code), against the 9 December 2025 release:
     malicious_user_instruction_or_jailbreak → ASI01
     direct_prompt_injection → ASI01
     indirect_prompt_injection → ASI06
-    tool_description_injection → ASI02
+    tool_description_injection → ASI04   (corrected 2026-07-31, was ASI02)
     malicious_tool_execution → ASI02
-    corrupted_tool_feedback → ASI05
-    unreliable_or_misinformation → ASI04
+    corrupted_tool_feedback → ASI06      (corrected 2026-07-31, was ASI05)
+    unreliable_or_misinformation → ASI08 (corrected 2026-07-31, was ASI04)
     inherent_agent_failures → ASI10
+
+The three corrections matter to what Experiment 12 reports, not just to naming.
+The ASI02 bucket previously held tool_description_injection and
+malicious_tool_execution in an exact 29/29 split, so half of the "real ASI02"
+result described poisoned tool *definitions* — the canonical MCP tool-poisoning
+attack, which is ASI04 Agentic Supply Chain Vulnerabilities, not tool misuse.
+
+The paper's conclusion survives the correction. Scored separately against the
+250 safe trajectories, the two halves detect within 0.03 of each other, so the
+supply-chain samples were not carrying the result and malicious_tool_execution
+alone still lands far above the synthetic ~0.52. But the per-category counts
+change (ASI02 falls from 58 to 29 and ASI04 gains 29), so Experiment 12 has to
+be re-run rather than relabelled.
 """
 
 import json
@@ -36,11 +49,25 @@ import numpy as np
 RISK_TO_OWASP = {
     "malicious_user_instruction_or_jailbreak": "ASI01",
     "direct_prompt_injection": "ASI01",
+    # Injected content redirecting the agent, arriving through retrieved
+    # context: ASI06 Memory & Context Poisoning. Arguably also ASI01, since the
+    # effect is a hijacked goal; classified by vector rather than by effect so
+    # that it does not merge with the two direct-injection sources above.
     "indirect_prompt_injection": "ASI06",
-    "tool_description_injection": "ASI02",
+    # Poisoned tool *descriptions* are the canonical MCP tool-poisoning /
+    # rug-pull attack: ASI04 Agentic Supply Chain Vulnerabilities, whose scope
+    # is explicitly runtime components in dynamic MCP and A2A ecosystems.
+    # Previously ASI02, which conflated a supply-chain compromise with an agent
+    # misusing a tool it was legitimately given.
+    "tool_description_injection": "ASI04",
     "malicious_tool_execution": "ASI02",
-    "corrupted_tool_feedback": "ASI05",
-    "unreliable_or_misinformation": "ASI04",
+    # A tool returning poisoned output that then shapes the agent's context is
+    # context poisoning (ASI06), not code execution. Previously ASI05, which is
+    # Unexpected Code Execution.
+    "corrupted_tool_feedback": "ASI06",
+    # False signals propagating through an automated pipeline is ASI08
+    # Cascading Failures. Previously ASI04.
+    "unreliable_or_misinformation": "ASI08",
     "inherent_agent_failures": "ASI10",
 }
 

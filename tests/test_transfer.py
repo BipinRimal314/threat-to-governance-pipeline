@@ -123,7 +123,7 @@ class TestOWASPMapper:
         ])
         y_test = np.array([0] * 50 + [1] * 10 + [1] * 10)
         owasp_labels = (
-            [""] * 50 + ["ASI01"] * 10 + ["ASI09"] * 10
+            [""] * 50 + ["ASI01"] * 10 + ["ASI10"] * 10
         )
 
         model = IsolationForestDetector(
@@ -137,7 +137,7 @@ class TestOWASPMapper:
 
         assert result.model_name == "IsolationForest"
         assert "ASI01" in result.category_metrics
-        assert "ASI09" in result.category_metrics
+        assert "ASI10" in result.category_metrics
         # Categories not in test data should be blind spots
         assert len(result.blind_spots) > 0
 

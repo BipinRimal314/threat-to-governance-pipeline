@@ -26,7 +26,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.data.trail_loader import load_trail_dataset, get_trail_labels
 from src.data.trace_loader import load_trace_dataset, trace_to_otel_format
-from src.data.synthetic_generator import generate_anomalous_traces
+from src.data.synthetic_generator import (
+    EXCESSIVE_AGENCY,
+    generate_anomalous_traces,
+)
 from src.features.agent_extractor import AgentTraceFeatureExtractor
 from src.features.ubfs_schema import (
     UBFSNormalizer,
@@ -231,12 +234,12 @@ def figure_3_owasp_matrix():
     with open(tables_dir / "experiment_3_owasp.json") as f:
         results = json.load(f)
 
-    categories = ["ASI01", "ASI02", "ASI05", "ASI09", "ASI10"]
+    categories = ["ASI01", "ASI02", "ASI06", EXCESSIVE_AGENCY, "ASI10"]
     cat_labels = [
         "ASI01\nGoal Hijack",
         "ASI02\nTool Misuse",
-        "ASI05\nMemory\nPoisoning",
-        "ASI09\nExcessive\nAgency",
+        "ASI06\nMemory &\nContext\nPoisoning",
+        "Excessive\nAgency\n(LLM Top 10)",
         "ASI10\nRogue\nAgents",
     ]
     model_names = list(results.keys())
