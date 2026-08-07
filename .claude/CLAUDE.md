@@ -67,7 +67,7 @@ PyTorch device config in `configs/model_configs.yaml` → `device: "auto"` (dete
 |-----|------|------------|
 | 1 | Within-domain baselines | DC 0.897 on TRAIL; TRACE ~0.50 (undetectable) |
 | 2 | Cross-domain transfer | **CERT→TRAIL: 0.731→0.711 (within seed noise ±0.047; "transfer within noise", NOT "97% retention")** |
-| 3 | OWASP detection matrix | **ASI02 Tool Misuse: 0.57-0.59 (blind spot)** |
+| 3 | OWASP detection matrix | ASI02 Tool Misuse 0.520 on **synthetic** data. **This is an artifact — see Common Mistakes.** |
 | 4 | Governance assumptions | 6 embedded assumptions audited |
 
 Results: `results/tables/experiment_{1-4}_*.json`
@@ -75,6 +75,9 @@ Figures: `results/figures/fig{1-6}_*.png`
 
 ## Common Mistakes — Read This First
 
+- **The ASI02 blind spot is NOT real.** Synthetic Exp 3 puts ASI02 Tool Misuse at 0.520; real ATBench data (Exp 12) puts it at 0.871/0.823/0.910 — the *best*-detected of six categories. Spearman rho between the synthetic and real rankings is **-1.000**, an exact inversion, on all three models. Cause: the generator defines ASI02 to modify only privilege features while preserving all behavioural structure, so it is undetectable *by construction*. `paper/main.tex` was rewritten around this on 7 Aug 2026. **Do not restate the blind-spot claim.** Anything below in the EXPERIMENT EXTENSION PLAN predates this and is a historical record of what we believed, not current fact.
+- **Synthetic per-category numbers do not predict real ones.** This applies to Exp 3, 8, 9 and 11 alike — all four inject perturbations we specify and then measure how visible they are. Treat them as hypothesis generation.
+- **Exp 3/8/9 result JSONs were key-migrated, not re-run** (ASI05→ASI06, ASI09→EXCESSIVE_AGENCY, 7 Aug 2026). Values are unchanged. TRAIL is gated and this machine has no HF token; authenticate and re-run Exp 3 to verify.
 - **Thesis AUC-ROC numbers**: IF 0.799, LSTM 0.770 (on full 24-dim features). Through UBFS (20-dim): IF 0.731, LSTM 0.723, DC 0.697. The lossy compression trades fidelity for cross-domain portability. **Never use 0.985.**
 - **TRACE is structurally undetectable** (~0.50 AUC-ROC). Reward hacking produces traces identical to normal. This is expected, not a bug.
 - **TRAIL has extreme class imbalance**: 143/148 traces have errors. Only 5 normal traces. Train on normal subset, test on all.
@@ -119,7 +122,7 @@ Two incidents validate findings from Experiments 2-3:
 **Incident 1 — AI-Orchestrated Espionage (disclosed Nov 2025):**
 Chinese state-sponsored group (GTG-1002) used Claude Code as autonomous hacking agent. AI performed 80-90% of espionage campaign. Used MCP tools (network scanners, password crackers) with correct sequencing and API calls. Jailbreak: decomposed malicious objectives into innocent subtasks ("defensive testing").
 
-- **Validates ASI02 blind spot (Exp 3):** Tool misuse with legitimate tool invocation patterns. Exactly the structural signature our models can't detect at 0.57-0.59 AUC-ROC.
+- **~~Validates ASI02 blind spot (Exp 3)~~ — RETRACTED 7 Aug 2026.** Experiment 12 finds real ASI02 the *best*-detected category (0.871 IF). The synthetic result was entailed by the generator, not evidence about the campaign. The parts of this incident that *do* validate a finding are decomposition (Exp 6) and HYDRA coordination (Exp 5).
 - **Validates boiling frog transfer:** Decomposition at prompt level mirrors gradual insider escalation. Same evasion strategy, different domain.
 - **Validates CERT→TRAIL transfer (Exp 2):** Hybrid human-AI attack confirms structural equivalence between insider threat and agent threat patterns.
 
@@ -547,7 +550,7 @@ With Exp 5-8 + Anthropic validation narrative:
 - NeurIPS 2026 Workshop on Red Teaming (deadline ~August)
 - USENIX Security (stretch, but cross-domain transfer + real-world validation is compelling)
 
-The narrative: "We built cross-domain behavioral monitoring. We identified a structural blind spot (ASI02). The first documented AI-orchestrated espionage campaign exploited that exact blind spot. Here's the data, and here's what we built to close the gap."
+The narrative (revised 7 Aug 2026): "We built cross-domain behavioural monitoring, identified a structural blind spot from synthetic profiling, and then tested it against real data — where it inverted. The blind spot that survives is architectural (per-entity monitors cannot see coordination), and the one that did not was an artifact of our own generator. Synthetic perturbation profiling cannot locate blind spots."
 
 ## Code Style
 
