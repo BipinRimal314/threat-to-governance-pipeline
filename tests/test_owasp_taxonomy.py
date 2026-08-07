@@ -11,12 +11,13 @@ a confident, plausible statement about an outside fact that no test touched.
 """
 
 import json
+import os
 import re
 from pathlib import Path
 
 import pytest
 
-from src.data.atbench_loader import RISK_TO_OWASP
+from src.data.atbench_loader import ATBENCH_CONFIG, RISK_TO_OWASP
 from src.data.synthetic_generator import EXCESSIVE_AGENCY, OWASP_PROFILES
 from src.evaluation.owasp_mapper import OWASP_CATEGORIES
 
@@ -148,3 +149,57 @@ def test_superseded_names_are_not_used_as_labels():
         "superseded OWASP category names used without saying so:\n  "
         + "\n  ".join(sorted(set(offenders)))
     )
+
+
+# ATBench per-category sample counts, measured 7 Aug 2026 against the
+# ATBench500 config after the ASI taxonomy correction (c41bd17).
+#
+# These are the counts Experiment 12's per-category table is computed over.
+# They are pinned because the identical failure the module docstring describes
+# is available here in a second form: the published dataset now carries two
+# configs, an unnamed load raises rather than defaulting, and the 1000-row
+# `ATBench` config would run perfectly cleanly while reporting a different
+# population against the same category names.
+ATBENCH500_BUCKETS = {
+    "ASI01": 61,
+    "ASI02": 29,
+    "ASI04": 29,
+    "ASI06": 73,
+    "ASI08": 29,
+    "ASI10": 29,
+}
+ATBENCH500_SAFE = 250
+
+
+def test_atbench_config_is_pinned():
+    """The split every reported number comes from, named explicitly."""
+    assert ATBENCH_CONFIG == "ATBench500"
+
+
+def test_atbench_buckets_are_reachable_from_the_mapping():
+    """Every pinned bucket is one the risk-source mapping can produce."""
+    assert set(ATBENCH500_BUCKETS) == set(RISK_TO_OWASP.values()), (
+        "pinned ATBench buckets and the risk-source mapping disagree; one of "
+        "them moved without the other"
+    )
+
+
+def test_atbench_bucket_totals_are_balanced():
+    """250 unsafe against 250 safe — the balance Exp 12 scores against."""
+    assert sum(ATBENCH500_BUCKETS.values()) == ATBENCH500_SAFE
+
+
+@pytest.mark.skipif(
+    not os.environ.get("TTG_NETWORK_TESTS"),
+    reason="downloads ATBench; set TTG_NETWORK_TESTS=1 to run",
+)
+def test_atbench_download_matches_pinned_buckets():
+    """The pinned counts against the live dataset, when asked for."""
+    from collections import Counter
+
+    from src.data.atbench_loader import load_atbench
+
+    data = load_atbench()
+    counts = Counter(o for o in data["owasp_labels"] if o)
+    assert dict(counts) == ATBENCH500_BUCKETS
+    assert int((data["labels"] == 0).sum()) == ATBENCH500_SAFE
