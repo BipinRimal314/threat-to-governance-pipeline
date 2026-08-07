@@ -303,22 +303,23 @@ TRACE $\to$ TRAIL & DC & 0.496 & 0.631 & +0.135 \\
 Table~\ref{tab:owasp} maps detection performance to OWASP ASI categories, revealing three distinct tiers. All three models are evaluated across 5 seeds with bootstrap 95\% confidence intervals; Wilcoxon signed-rank tests confirm each tier boundary is statistically significant ($p{=}0.031$ for all adjacent pairs).
 
 \begin{table}[htbp]
-\caption{OWASP ASI Detection Matrix (Synthetic, AUC-ROC $\pm$ std, 5 seeds)}
+\caption{OWASP ASI Detection Matrix (Synthetic, AUC-ROC $\pm$ std, 5 seeds).
+$^{\dagger}$``Excessive Agency'' is from the OWASP LLM Top 10 and has no ASI equivalent; see below.}
 \label{tab:owasp}
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lccc}
 \toprule
 \textbf{OWASP Category} & \textbf{IF} & \textbf{LSTM} & \textbf{DC} \\
 \midrule
-ASI06 Mem.\ \& Ctx.\ Poisoning & $.920{\pm}.010$ & $\mathbf{.975{\pm}.006}$ & $.981{\pm}.013$ \\
+ASI06 Mem./Ctx.\ Pois. & $.920{\pm}.010$ & $\mathbf{.975{\pm}.006}$ & $.981{\pm}.013$ \\
 Excessive Agency$^{\dagger}$ & $.858{\pm}.019$ & $.831{\pm}.014$ & $.852{\pm}.020$ \\
 ASI10 Rogue Agents & $.729{\pm}.021$ & $.696{\pm}.035$ & $.730{\pm}.032$ \\
 ASI01 Goal Hijack & $.642{\pm}.034$ & $.637{\pm}.031$ & $.621{\pm}.039$ \\
 \addlinespace
 ASI02 Tool Misuse & $.520{\pm}.025$ & $.510{\pm}.019$ & $.524{\pm}.037$ \\
 \bottomrule
-\multicolumn{4}{l}{\footnotesize $^{\dagger}$Not an ASI category; see note below.} \\
 \end{tabular}
 \end{table}
 
@@ -492,7 +493,7 @@ ASI06 Mem.\ \& Ctx.\ Poison. & $\mathbf{.989}$ & .976 & --.013 & DC \\
 \addlinespace
 ASI02 Tool Misuse & .537 & .559 & +.023 & DC \\
 \bottomrule
-\multicolumn{5}{l}{\footnotesize $^{\dagger}$OWASP LLM Top 10; no ASI equivalent (Section~\ref{sec:owasp}).} \\
+\multicolumn{5}{l}{\footnotesize $^{\dagger}$OWASP LLM Top 10; no ASI code.} \\
 \end{tabular}
 \end{table}
 
@@ -510,13 +511,13 @@ Experiment~9 tests three evasion strategies against UBFS-based monitoring, forma
 \textbf{Feature clamping} caps anomalous features at the 95th percentile of the normal distribution, simulating an attacker who knows the monitoring thresholds. \textbf{Gradual escalation} linearly interpolates from a normal profile to an anomalous target in $N$ steps. \textbf{Mimicry} replaces all features except the privilege dimension with the nearest normal neighbour's values, preserving the attack payload while making everything else look normal.
 
 \begin{table}[htbp]
-\caption{Adversarial Evasion: AUC-ROC Drop (\%) by Strategy}
+\caption{Adversarial Evasion: AUC-ROC Drop (\%) by Strategy. EA${=}$Excessive Agency (not an ASI category).}
 \label{tab:evasion}
 \centering
 \small
 \begin{tabular}{@{}llrrrrr@{}}
 \toprule
-\textbf{Strategy} & \textbf{Model} & \textbf{ASI01} & \textbf{ASI02} & \textbf{ASI06} & \textbf{Exc.Ag.} & \textbf{ASI10} \\
+\textbf{Strategy} & \textbf{Model} & \textbf{ASI01} & \textbf{ASI02} & \textbf{ASI06} & \textbf{EA} & \textbf{ASI10} \\
 \midrule
 \multirow{3}{*}{Clamp}
  & IF   &  5.1 &  1.5 &  7.9 &  2.5 &  2.8 \\
@@ -610,7 +611,8 @@ The mechanism is circularity. A perturbation profile specifies which UBFS dimens
 \caption{Real-Data OWASP Detection on ATBench (AUC-ROC, 5 seeds)}
 \label{tab:real_owasp}
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
 \textbf{Model} & \textbf{Feat.} & \textbf{ASI01} & \textbf{ASI02} & \textbf{ASI04} & \textbf{ASI06} & \textbf{ASI08} & \textbf{ASI10} \\

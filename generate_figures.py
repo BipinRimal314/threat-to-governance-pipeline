@@ -244,12 +244,26 @@ def figure_3_owasp_matrix():
     ]
     model_names = list(results.keys())
 
+    # A missing category used to fall through to 0.0, which renders as a
+    # confident dark-red "undetectable" cell rather than as an error. The
+    # 2026-07-31 taxonomy rename hit exactly that path: the figure kept the
+    # pre-rename PNG while the paper's table moved on, and the two disagreed
+    # in print for a week. Fail loudly instead.
     matrix = np.zeros((len(model_names), len(categories)))
     for i, model in enumerate(model_names):
         per_cat = results[model]["per_category"]
         for j, cat in enumerate(categories):
-            if cat in per_cat and isinstance(per_cat[cat], dict):
-                matrix[i, j] = per_cat[cat].get("auc_roc", 0)
+            if cat not in per_cat:
+                raise KeyError(
+                    f"experiment_3_owasp.json has no category {cat!r} for "
+                    f"{model}; it has {sorted(per_cat)}. If the taxonomy was "
+                    f"renamed, migrate the results file rather than letting "
+                    f"this cell render as 0.0."
+                )
+            auc = per_cat[cat]["auc_roc"]
+            # Multi-seed runs store {"mean": ..., "std": ...}; older
+            # single-seed runs stored a bare float.
+            matrix[i, j] = auc["mean"] if isinstance(auc, dict) else auc
 
     fig, ax = plt.subplots(figsize=(8, 3.5))
     sns.heatmap(
