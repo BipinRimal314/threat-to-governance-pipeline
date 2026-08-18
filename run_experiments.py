@@ -2474,6 +2474,55 @@ def experiment_11():
     return results
 
 
+def _exact_spearman_p(x, y):
+    """Exact two-sided permutation p for Spearman, plus its floor.
+
+    ``scipy.stats.spearmanr`` computes p from a t-approximation,
+    ``t = rho * sqrt((n - 2) / (1 - rho**2))``. At ``rho = +/-1`` the
+    denominator is exactly zero, ``t`` is infinite, and the reported p
+    underflows to 0.0 — which reads as overwhelming significance at the
+    precise moment the statistic is least informative.
+
+    Phase C compares only the categories Exp 3 and Exp 12 share, and there
+    are three of them. Three points admit ``3! = 6`` orderings, two of which
+    give ``|rho| = 1``, so the smallest two-sided p obtainable is ``2/6 =
+    0.333``. No result at n=3 is significant at any conventional level, and
+    a perfect rank correlation there is the most likely single outcome under
+    the null, not evidence against it.
+
+    Enumeration is ``n!``, which is the right cost at the sizes this
+    comparison actually runs at and the wrong one beyond them. Above
+    ``EXACT_MAX_N`` the asymptotic p is sound anyway — the approximation is
+    only dangerous where the sample is small enough to reach ``|rho| = 1``.
+
+    Returns:
+        Tuple of (exact two-sided p, smallest attainable p at this n).
+        Above ``EXACT_MAX_N``, the asymptotic p and a floor of 0.0.
+    """
+    from itertools import permutations
+
+    from scipy.stats import spearmanr
+
+    EXACT_MAX_N = 8
+
+    x = list(x)
+    y = list(y)
+    if len(x) > EXACT_MAX_N:
+        return float(spearmanr(x, y).pvalue), 0.0
+    observed = abs(spearmanr(x, y).statistic)
+    orderings = list(permutations(y))
+    at_least_as_extreme = sum(
+        1 for perm in orderings
+        if abs(spearmanr(x, list(perm)).statistic) >= observed - 1e-12
+    )
+    floor = sum(
+        1 for perm in orderings
+        if abs(spearmanr(x, list(perm)).statistic) >= 1.0 - 1e-12
+    )
+    n_orderings = len(orderings)
+    return at_least_as_extreme / n_orderings, floor / n_orderings
+
+
 def experiment_12():
     """Real-data OWASP validation + UBFS-28 on ATBench.
 
@@ -2713,16 +2762,31 @@ def experiment_12():
 
             if len(synth_aucs) >= 3:
                 rho, p = spearmanr(synth_aucs, real_aucs)
+                p_exact, p_floor = _exact_spearman_p(
+                    synth_aucs, real_aucs
+                )
                 results["phase_c_correlation"][name] = {
                     "spearman_rho": float(rho),
-                    "spearman_p": float(p),
+                    # The asymptotic p is retained for comparability with
+                    # earlier runs, but `spearman_p_exact` is the one to
+                    # report. See _exact_spearman_p.
+                    "spearman_p_asymptotic": float(p),
+                    "spearman_p_exact": float(p_exact),
+                    "spearman_p_floor": float(p_floor),
                     "n_categories": len(shared_cats),
                     "categories": shared_cats,
                     "synthetic_aucs": synth_aucs,
                     "real_aucs": real_aucs,
                 }
-                print(f"  {name}: rho={rho:.4f}, p={p:.4f} "
-                      f"(n={len(shared_cats)} categories)")
+                print(f"  {name}: rho={rho:.4f}, "
+                      f"exact p={p_exact:.4f} "
+                      f"(floor {p_floor:.4f} at n="
+                      f"{len(shared_cats)}), "
+                      f"asymptotic p={p:.4g}")
+                if p_exact > 0.05:
+                    print("      not significant — and cannot be: "
+                          f"n={len(shared_cats)} cannot produce "
+                          f"p<{p_floor:.4f}")
 
                 # Which categories synthetic over/under-estimates
                 for i, cat in enumerate(shared_cats):

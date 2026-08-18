@@ -72,8 +72,22 @@ RISK_TO_OWASP = {
 }
 
 
-def load_atbench() -> Dict:
+#: The published dataset carries two configs, and an unnamed load is now a
+#: hard error rather than a default. Every result this repository reports is
+#: from ATBench500 -- 500 trajectories, 250 safe and 250 unsafe -- so the name
+#: is pinned here. The 1000-row ``ATBench`` config is a different population
+#: (503/497, and ASI01 100 / ASI02 25 / ASI04 52 / ASI06 121 / ASI08 64 /
+#: ASI10 135); silently loading it would change every per-category number
+#: while still running clean.
+ATBENCH_CONFIG = "ATBench500"
+
+
+def load_atbench(config: str = ATBENCH_CONFIG) -> Dict:
     """Load ATBench dataset from HuggingFace.
+
+    Args:
+        config: HuggingFace config name. Defaults to ``ATBench500``, the
+            500-trajectory split every reported result is computed on.
 
     Returns:
         Dict with:
@@ -84,7 +98,7 @@ def load_atbench() -> Dict:
     """
     from datasets import load_dataset
 
-    ds = load_dataset("AI45Research/ATBench", split="test")
+    ds = load_dataset("AI45Research/ATBench", config, split="test")
 
     trajectories = []
     labels = []
