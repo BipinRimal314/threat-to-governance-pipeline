@@ -37,3 +37,7 @@ Thumbs.db
 
 # Results (keep figures for README, exclude LaTeX tables)
 results/tables/*.tex
+
+# latexmk build database
+paper/*.fls
+paper/*.fdb_latexmk
