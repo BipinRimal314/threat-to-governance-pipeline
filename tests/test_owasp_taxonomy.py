@@ -203,3 +203,105 @@ def test_atbench_download_matches_pinned_buckets():
     counts = Counter(o for o in data["owasp_labels"] if o)
     assert dict(counts) == ATBENCH500_BUCKETS
     assert int((data["labels"] == 0).sum()) == ATBENCH500_SAFE
+
+
+# ---------------------------------------------------------------------------
+# The paper.
+#
+# The scan above deliberately does not include paper/main.tex: the paper
+# reports Excessive Agency as a result under its own name, with a footnote
+# saying it is an LLM Top 10 category, and a per-occurrence proximity check
+# would flag every one of those legitimate mentions.
+#
+# What the paper needs instead is the binding check — every ASInn in the text
+# must be followed by *its own* title and no other. That is the failure this
+# file exists to catch: the numbers were right, the words were right, and six
+# of them were against each other's identifiers. main.tex carried those
+# pairings for a month after the code was fixed, in an abstract, four tables
+# and a figure caption, because nothing here looked at it.
+
+# Abbreviations main.tex uses inside table rows, expanded before matching.
+# Without these, "Ctx." and "Excess." are not prefixes of the words they stand
+# for and would have to be excused by a looser matcher — and a looser matcher
+# accepts "ASI05 Mem. Poisoning", which is the superseded pairing itself.
+PAPER_ABBREVIATIONS = {
+    "mem": "memory",
+    "ctx": "context",
+    "excess": "excessive",
+}
+
+# ASInn followed by a run of title-shaped words, optionally parenthesised as in
+# a figure caption. Stops at the first lowercase word, digit or maths, so
+# ordinary prose ("ASI04 and ASI08 are covered") yields no run.
+#
+# A title word is capitalised and then lowercase. Requiring that second
+# lowercase letter is what keeps table headers ("ASI01 & ASI02 & ASI04") and
+# model acronyms ("ASI08 (IF: +13.3%)") out: every published title word has
+# the shape, and no identifier or model abbreviation does.
+_PAPER_TITLE_RUN = re.compile(
+    r"ASI(\d\d)\s+\(?((?:(?:[A-Z][a-z][A-Za-z-]*\.?|&)\s*){1,5})"
+)
+
+
+def _plain_tex(tex):
+    """Strip the LaTeX that sits between an identifier and its title."""
+    tex = tex.replace("\\&", "&").replace("\\ ", " ").replace("~", " ")
+    tex = re.sub(r"\\(?:textbf|textit|emph)\{([^}]*)\}", r"\1", tex)
+    tex = re.sub(r"\$\^\{?\\dagger\}?\$", " ", tex)
+    return tex
+
+
+def _title_words(identifier):
+    return {w.lower() for w in PUBLISHED[identifier].split() if w != "&"}
+
+
+def _binds(token, identifier):
+    """Does this word belong to this category's published title?
+
+    Prefix-compatible in both directions, so "Hijacking" matches "Hijack" and
+    the table's "Agentic Supply Chain" matches the full "...Vulnerabilities".
+    Abbreviations are expanded first, never prefix-matched.
+    """
+    token = PAPER_ABBREVIATIONS.get(token, token)
+    return any(
+        word.startswith(token) or token.startswith(word)
+        for word in _title_words(identifier)
+    )
+
+
+def test_paper_binds_each_identifier_to_its_published_title():
+    tex = _plain_tex((REPO / "paper" / "main.tex").read_text(encoding="utf-8"))
+    offenders = []
+    for match in _PAPER_TITLE_RUN.finditer(tex):
+        identifier = "ASI" + match.group(1)
+        tokens = [
+            t.rstrip(".").lower()
+            for t in match.group(2).split()
+            if t not in ("&",)
+        ]
+        stray = [t for t in tokens if not _binds(t, identifier)]
+        if stray:
+            line = tex[:match.start()].count("\n") + 1
+            offenders.append(
+                f"main.tex:{line}: {identifier} followed by "
+                f"{' '.join(tokens)!r} — published title is "
+                f"{PUBLISHED[identifier]!r}"
+            )
+    assert not offenders, (
+        "the paper pairs an identifier with a title that is not its own:\n  "
+        + "\n  ".join(offenders)
+    )
+
+
+def test_paper_marks_excessive_agency_as_not_an_asi_category():
+    """It is reported as a result, so it has to be labelled as an outsider."""
+    tex = (REPO / "paper" / "main.tex").read_text(encoding="utf-8")
+    if "Excessive Agency" not in tex and "Excess." not in tex:
+        pytest.skip("the paper no longer reports Excessive Agency")
+    assert "LLM" in tex and "Top 10" in tex, (
+        "the paper reports Excessive Agency without anywhere saying it is an "
+        "OWASP LLM Top 10 category rather than an ASI one"
+    )
+    assert not re.search(r"ASI\d\d\s+\(?Excess", _plain_tex(tex)), (
+        "Excessive Agency is presented under an ASI identifier; it has none"
+    )
