@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
@@ -53,7 +54,8 @@ from src.models.lstm_autoencoder import LSTMAutoencoderDetector
 from src.models.deep_clustering import DeepClusteringDetector
 
 SEEDS = [42, 43, 44, 45, 46]
-RESULTS_DIR = Path(__file__).parent / "results"
+# TTG_RESULTS_DIR sends a fresh run somewhere other than the published tables.
+RESULTS_DIR = Path(os.environ.get("TTG_RESULTS_DIR", Path(__file__).parent / "results"))
 TABLES_DIR = RESULTS_DIR / "tables"
 
 # Global flag set by --cert CLI option
@@ -3005,7 +3007,7 @@ def main():
     )
     parser.add_argument(
         "--all", action="store_true",
-        help="Run all experiments"
+        help="Run all experiments (1-13)"
     )
     parser.add_argument(
         "--cert", action="store_true",
@@ -3018,10 +3020,13 @@ def main():
 
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
-    if args.all or args.experiment is None:
-        experiments = [1, 2, 3, 4]
-    else:
+    if args.all:
+        experiments = list(range(1, 14))
+    elif args.experiment is not None:
         experiments = [args.experiment]
+    else:
+        parser.print_help()
+        return
 
     all_results = {}
     for exp in experiments:

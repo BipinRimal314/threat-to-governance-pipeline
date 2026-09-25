@@ -17,7 +17,10 @@ source .venv/bin/activate
 # Run tests
 pytest tests/ -v
 
-# Run completed experiments
+# Fresh run of all 13 on the Ubuntu box, into results/runs/<ts>/, compared to results/tables
+./scripts/testrun.sh            # --check for preflight only
+
+# Run all 13 in place (overwrites results/tables)
 python run_experiments.py --all --cert
 
 # Run specific experiment

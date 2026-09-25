@@ -41,3 +41,6 @@ results/tables/*.tex
 # latexmk build database
 paper/*.fls
 paper/*.fdb_latexmk
+
+# Fresh runs from scripts/testrun.sh; commit a run deliberately if it replaces the published tables
+results/runs/
