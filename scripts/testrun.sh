@@ -56,7 +56,7 @@ api = HfApi()
 try:
     print("HF user:", api.whoami()["name"])
 except Exception:
-    sys.exit("Not logged in to HuggingFace. Run: .venv/bin/huggingface-cli login")
+    sys.exit("Not logged in to HuggingFace. Run: .venv/bin/hf auth login")
 bad = []
 DATA = (".parquet", ".json", ".jsonl", ".csv", ".arrow")
 for repo in ("PatronusAI/TRAIL", "PatronusAI/trace-dataset",

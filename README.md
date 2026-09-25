@@ -6,6 +6,9 @@ Bipin Rimal | February 2026
 
 ---
 
+
+> **Rerunning everything:** see [TESTRUN.md](TESTRUN.md) — one script, a fresh results folder, and a comparison against the published tables.
+
 ## The Argument
 
 Most people assume insider threat detection and AI agent monitoring are separate disciplines. They share the same architecture.
