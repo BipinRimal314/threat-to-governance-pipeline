@@ -107,9 +107,9 @@ Synthetic anomalies injected into TRAIL traces, mapped to OWASP ASI categories:
 
 † "Excessive Agency" is from the OWASP **LLM** Top 10, not the Agentic Top 10, which has no equivalent category. It is reported here because it models a real and distinct behaviour — an agent taking far more action than its task requires — but it does not carry an ASI identifier. Category labels follow the [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/) of 9 December 2025; earlier revisions of this table used names from OWASP's superseded *Agentic AI — Threats and Mitigations* material, which put six of ten identifiers against the wrong name. The numbers are unchanged — only the labels were wrong. `tests/test_owasp_taxonomy.py` now pins them.
 
-**Tool Misuse (ASI02) is a blind spot** (0.57-0.59 AUC-ROC). Both models struggle because tool misuse changes parameters without changing structural patterns. The tool is called correctly, with correct sequencing — it just uses escalated privileges. This is the AI equivalent of an employee using their legitimate access to do something illegitimate. Structural anomaly detection can't catch it. You need semantic understanding.
+**On synthetic data, Tool Misuse (ASI02) looks like a blind spot (0.57-0.59 AUC-ROC). On real data it is not.** Experiment 12 tested the same categories on 500 real ATBench trajectories, and ASI02 came out as the *best*-detected of six categories (0.823-0.910 AUC-ROC across the three models). The per-category ranking inverted exactly: Spearman rho between the synthetic and real rankings is **-1.000** for all three models.
 
-This has direct governance implications: any monitoring system built purely on behavioural patterns will miss the most sophisticated attacks.
+The cause is in the generator. It defines ASI02 as a change to privilege features only, with behavioural structure left intact, so the synthetic ASI02 was undetectable by construction. The "blind spot" restated an assumption built into the test data; it was not a property of the detectors. That is the finding this experiment now stands for: **synthetic perturbation profiling cannot locate blind spots, only restate the assumptions used to build them.** An earlier version of this README reported the blind spot as real; the paper was rewritten around the inversion on 7 August 2026.
 
 ### Experiment 4: Governance Assumptions
 
@@ -174,7 +174,7 @@ Requires: Python 3.11+, PyTorch 2.0+, HuggingFace account (TRAIL/TRACE are gated
 
 The AI governance field is building agent monitoring systems from scratch. The security field has been building behavioural monitoring systems for decades. The structural analogy between "rogue employee" and "rogue agent" isn't a metaphor — it's an architectural identity. The same models, the same features, the same blind spots.
 
-The blind spots are what matter most. Tool Misuse (ASI02) evades detection because it operates within legitimate structural boundaries. This is precisely how the most damaging insiders operate — they use their real credentials to do things they shouldn't. If we build agent monitoring systems without learning this lesson from security, we'll rediscover it the hard way.
+The blind spots are what matter most, and the hardest lesson here was about finding them. The blind spot that survives real data is architectural: per-entity monitors cannot see a malicious objective split across agents or sessions (HYDRA distributed distillation stays near chance, 0.54, at every scale), and mimicry attacks cut detection by up to 25%. The blind spot that did not survive was Tool Misuse, which synthetic profiling "found" and real data exactly reversed. If you locate your monitor's weaknesses with data you generated yourself, you mostly find the assumptions you put in.
 
 The governance question underneath both: who decides what "normal" means, and what does that decision exclude?
 
