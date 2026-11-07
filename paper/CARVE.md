@@ -55,7 +55,7 @@ latent-space structure.
    `insider-detection/src/data/{loader,preprocessing,features}.py`. Those files were never committed: that repo's
    `.gitignore` line `data/` also ignores `src/data/`. They are on no machine and in no git history, so every CERT
    number (Exp 1 CERT column, Exp 2 CERT transfers, the 0.711) is unreproducible. Failure 2 does not need CERT:
-   TRACE -> TRAIL also beats TRAIL in-domain (IF 0.577 -> 0.690, +0.113), which makes the same base-rate point.
+   TRACE -> TRAIL IF scores 0.614 against TRAIL in-domain 0.577 (corrected 2026-11-07; an earlier note said 0.690, an arithmetic slip: +0.113 is against TRACE in-domain).
    Either lead with that, or rebuild the CERT features on `insider-budget/features.py` (the preregistered pipeline)
    and report new numbers.
 3. **One real dataset.** ATBench is the only real test of the OWASP ranking. Name it as a limitation.
@@ -71,7 +71,7 @@ Report: `reports/Agent monitor evaluation validity.md`; notes in `research_notes
   per-category gaps: ASI02 synthetic 0.51-0.52 vs ATBench 0.82-0.91; ASI06 synthetic 0.92-0.98 vs ATBench 0.80-0.91.
 - **ATBench is not "real".** Its paper says trajectories are constructed, then LLM- and rule-filtered and
   human-audited (arXiv 2604.02022). Say "an independently constructed benchmark", never "real data".
-- **TRAIL cannot rank detectors.** With 5 negatives, Hanley-McNeil 95% CI is about +/-0.24 (0.577 -> 0.33-0.82).
+- **TRAIL cannot rank detectors.** With 5 negatives, Hanley-McNeil 95% CI is about +/-0.24 (0.577 -> 0.33-0.82); 0.614 and 0.774 (ATBench -> TRAIL) both sit inside it.
   Do not say "base rate inflates AUROC"; say 5 negatives make the statistic too noisy to compare anything.
 - Exp 7 per-category n changed with the taxonomy fix (ASI02 58 -> 29); ASI02 AUC 0.871, unchanged.
 - Nobody found showing either claim. Closest: arXiv 2604.23488 (prompted vs training-time reward hacking) and
@@ -82,3 +82,6 @@ Report: `reports/Agent monitor evaluation validity.md`; notes in `research_notes
 Revised claim: how the attack data is constructed decides which attacks look detectable (two independent
 constructions of the same OWASP categories disagree by up to 0.4 AUC per category), and a widely used trace
 benchmark has too few negatives to rank detectors at all.
+
+- **ASI02 mechanism, corrected:** `src/data/synthetic_generator.py` (ASI02 branch) changes no spans, tool names or order; it rescales numeric span attributes by +/-10%. It does not touch privilege features, despite main.tex and CLAUDE.md. The short paper describes the code.
+- Short paper: `paper/short/` (main.tex, refs.bib, NUMBERS.md). Check every bib entry before submission.
