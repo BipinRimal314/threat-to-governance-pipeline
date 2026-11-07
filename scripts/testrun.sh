@@ -78,7 +78,8 @@ EOF
 
 # --- CMU-CERT (optional; experiments run without it, minus the CERT arms) ----
 CERT_FLAG=""
-if [ -d ../insider-detection/data/r4.2 ]; then
+# The loader code is needed as well as the data; insider-detection never committed src/data/.
+if [ -d ../insider-detection/data/r4.2 ] && [ -f ../insider-detection/src/data/loader.py ]; then
   CERT_FLAG="--cert"; echo "CMU-CERT: found, running with --cert"
 else
   echo "WARNING: ../insider-detection/data/r4.2 not found; running WITHOUT CMU-CERT."
