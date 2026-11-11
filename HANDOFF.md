@@ -1,5 +1,30 @@
 # Handoff
 
+## 2026-11-11: workshop paper rewritten on held-out numbers
+
+Branch `paper/heldout-rewrite` (local, not pushed). The paper is `paper/short/main.tex`, 4 pages. Target: an ICLR 2027 workshop (suggested paper deadline 1 Feb 2027; the workshop list is due about 29 Nov 2026).
+
+What changed:
+
+- `scripts/heldout_check.py` re-runs Exp 1, 3 and 12 with test negatives held out of training, adds a tool-call-count baseline and Hanley-McNeil intervals, and writes `results/tables/heldout_check.json`. It makes every number in Tables I to III. `paper/short/NUMBERS.md` maps each number to its key.
+- Three findings now carry the paper: the two constructions disagree per category (ASI02 0.50 against 0.82-0.89); on ATBench a raw count scores 0.89-0.94 and no detector improves on it; on TRAIL, deep clustering falls from 0.893 to 0.598 when its negatives are held out.
+- TRAIL has 4 error-free traces, not 5.
+- `refs.bib`: 10 of 21 entries were wrong and are corrected; 13 were checked against source pages.
+
+Reviewed once by two fresh reviewers (structure; correctness and numbers). All findings were fixed, and the script was re-run afterwards (deterministic). No second review round was run.
+
+Next steps:
+
+1. Bipin reads `paper/short/main.pdf` and approves or changes the claim.
+2. Find why deep clustering scores 0.02-0.04 lower than `results/tables/` on ATBench (torch 2.15 on CPU here). Run `heldout_check.py` on the Arch PC and compare.
+3. Re-run the synthetic setting with folds grouped by base trace (the paper lists this as a limitation).
+4. Add a paired bootstrap of count minus best detector, so "no detector improves on a count" has an interval.
+5. Experiment E1 in `../PAPER_REVIEW_2026-11-11.md`: a strength parameter for the ASI02 profile, and a third construction (AgentHarm).
+6. Check the remaining 8 older bibliography entries against their sources.
+7. Pick the workshop when the ICLR list is out; convert the template; push after Bipin says yes.
+
+Run: `HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 .venv/bin/python scripts/heldout_check.py` (about 10 minutes; TRAIL and ATBench must be in the HuggingFace cache).
+
 ## 2026-11-07: the paper is the main work again
 
 Decided on the Mac, 2026-11-07. Two lanes until a job or fellowship lands:

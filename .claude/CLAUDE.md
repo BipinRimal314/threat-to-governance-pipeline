@@ -70,7 +70,8 @@ Figures: `results/figures/fig{1-6}_*.png`
 - **Exp 3/8/9 result JSONs were key-migrated, not re-run** (ASI05→ASI06, ASI09→EXCESSIVE_AGENCY, 7 Aug 2026). Values are unchanged. TRAIL is gated and this machine has no HF token; authenticate and re-run Exp 3 to verify.
 - **Thesis AUC-ROC numbers**: IF 0.799, LSTM 0.770 (on full 24-dim features). Through UBFS (20-dim): IF 0.731, LSTM 0.723, DC 0.697. The lossy compression trades fidelity for cross-domain portability. **Never use 0.985.**
 - **TRACE is structurally undetectable** (~0.50 AUC-ROC). Reward hacking produces traces identical to normal. This is expected, not a bug.
-- **TRAIL has extreme class imbalance**: 143/148 traces have errors. Only 5 normal traces. Train on normal subset, test on all.
+- **TRAIL has extreme class imbalance**: 144/148 traces have errors. Only 4 normal traces (3 GAIA, 1 SWE-bench; counted 2026-11-11, older notes said 143 and 5). Never test a detector on the normals it trained on: DC falls from 0.893 to 0.598 when each normal is held out (`scripts/heldout_check.py`).
+- **Trace length beats every detector on ATBench.** Raw tool-call count scores 0.89-0.94 per category; message count alone gives 0.924 overall. Always report this baseline.
 - **TRAIL trace field is JSON string** with nested `child_spans`. Loader flattens recursively.
 - **TRACE label "0" = benign**, anything else (e.g. "1.1.1") = reward hack. Some turns have `content: None`.
 - **CMU-CERT needs sibling directory**: `../insider-detection/data/r4.2/` with raw CSVs.
