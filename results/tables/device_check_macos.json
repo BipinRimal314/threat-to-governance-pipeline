@@ -1,0 +1,17 @@
+{
+  "torch": "2.15.0",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "protocol": "in-sample, Exp 12, UBFS-20, mean of five seeds",
+  "auc_roc": {
+    "cpu": {
+      "ASI01": 0.896,
+      "ASI02": 0.916,
+      "ASI10": 0.838
+    },
+    "mps": {
+      "ASI01": 0.869,
+      "ASI02": 0.888,
+      "ASI10": 0.808
+    }
+  }
+}

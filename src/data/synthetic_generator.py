@@ -182,6 +182,8 @@ def _perturb_trace(
     trace: dict,
     owasp_category: str,
     rng: np.random.RandomState,
+    asi02_strength: float = 0.0,
+    tool_pool: Optional[List[str]] = None,
 ) -> dict:
     """Create an anomalous copy of a trace for a given OWASP category.
 
@@ -229,6 +231,15 @@ def _perturb_trace(
                 for key in list(attrs.keys()):
                     if isinstance(attrs[key], (int, float)):
                         attrs[key] = attrs[key] * (1 + rng.uniform(-0.1, 0.1))
+        if asi02_strength > 0:
+            # Detectability dial: also insert tool-call spans whose tool is
+            # absent from this trace (but present in others), at random positions.
+            absent = sorted(set(tool_pool or []) - {sp.get("name", sp.get("span_name", "unknown")) for sp in spans})
+            if absent:
+                for _ in range(int(round(asi02_strength * 0.5 * len(spans)))):
+                    new_span = copy.deepcopy(spans[rng.randint(0, len(spans))])
+                    new_span["name"] = absent[rng.randint(0, len(absent))]
+                    spans.insert(rng.randint(0, len(spans) + 1), new_span)
 
     elif owasp_category == "ASI06":
         # Memory & context poisoning: duplicate and extend session
@@ -439,7 +450,9 @@ def generate_anomalous_traces(
     anomaly_ratio: float = 0.3,
     categories: Optional[List[str]] = None,
     seed: int = 42,
-) -> Tuple[List[dict], np.ndarray, List[str]]:
+    return_base_idx: bool = False,
+    asi02_strength: float = 0.0,
+) -> Tuple:
     """Generate a mixed dataset of normal and anomalous traces.
 
     Takes a set of base (normal) traces and injects anomalies
@@ -450,6 +463,10 @@ def generate_anomalous_traces(
         anomaly_ratio: Fraction of output that should be anomalous.
         categories: OWASP categories to use. Default: all available.
         seed: Random seed.
+        return_base_idx: also return, per output trace, the index in
+            ``base_traces`` it came from (itself for a normal trace, the
+            perturbed base for an anomaly).
+        asi02_strength: in [0, 1]. 0 = the original ASI02 profile exactly.
 
     Returns:
         Tuple of:
@@ -467,13 +484,22 @@ def generate_anomalous_traces(
     n_anomalous = int(n_total * anomaly_ratio / (1 - anomaly_ratio))
 
     # Create anomalous traces
+    tool_pool = None
+    if asi02_strength > 0:
+        from src.features.agent_extractor import AgentTraceFeatureExtractor
+        tool_pool = sorted({sp.get("name", sp.get("span_name", "unknown")) for t in base_traces
+                            for sp in t.get("spans", [])
+                            if AgentTraceFeatureExtractor._is_tool_call(sp.get("name", sp.get("span_name", "unknown")))})
     anomalous_traces = []
     anomalous_cats = []
+    anomalous_base = []
     for i in range(n_anomalous):
         # Pick a random base trace to perturb
-        base = base_traces[rng.randint(0, len(base_traces))]
+        bi = rng.randint(0, len(base_traces))
+        base = base_traces[bi]
         cat = categories[i % len(categories)]
-        perturbed = _perturb_trace(base, cat, rng)
+        perturbed = _perturb_trace(base, cat, rng, asi02_strength, tool_pool)
+        anomalous_base.append(bi)
         anomalous_traces.append(perturbed)
         anomalous_cats.append(cat)
 
@@ -484,12 +510,14 @@ def generate_anomalous_traces(
         np.ones(len(anomalous_traces), dtype=np.int32),
     ])
     owasp_cats = [""] * len(base_traces) + anomalous_cats
+    base_idx = list(range(len(base_traces))) + anomalous_base
 
     # Shuffle
     perm = rng.permutation(len(mixed))
     mixed = [mixed[i] for i in perm]
     labels = labels[perm]
     owasp_cats = [owasp_cats[i] for i in perm]
+    base_idx = np.array(base_idx)[perm]
 
     cat_counts = {}
     for c in anomalous_cats:
@@ -499,4 +527,6 @@ def generate_anomalous_traces(
           f"({len(base_traces)} normal, {n_anomalous} anomalous)")
     print(f"  Categories: {cat_counts}")
 
+    if return_base_idx:
+        return mixed, labels, owasp_cats, base_idx
     return mixed, labels, owasp_cats

@@ -1,0 +1,345 @@
+{
+  "resamples": 2000,
+  "resample_seed": 42,
+  "count_sign": {
+    "ASI01": 1,
+    "ASI02": 1,
+    "ASI04": 1,
+    "ASI06": 1,
+    "ASI08": 1,
+    "ASI10": 1
+  },
+  "note": "The count sign is fixed before resampling, from all data. Negative weights are per safe trace and shared across seeds.",
+  "cells": {
+    "IsolationForest": {
+      "ASI01": {
+        "seed42": {
+          "point_count_minus_detector": 0.07357377049180328,
+          "ci95": [
+            0.03233438551229322,
+            0.11855884172838074
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.07678688524590163,
+          "ci95": [
+            0.03505404368540393,
+            0.12106949803896475
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI02": {
+        "seed42": {
+          "point_count_minus_detector": 0.06600000000000003,
+          "ci95": [
+            0.022161022265137525,
+            0.11935845310974443
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.07049655172413793,
+          "ci95": [
+            0.02665209673282628,
+            0.12289827153829094
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI04": {
+        "seed42": {
+          "point_count_minus_detector": 0.08606896551724134,
+          "ci95": [
+            0.03742112587610648,
+            0.14458617565591877
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.09120000000000002,
+          "ci95": [
+            0.0424801004575066,
+            0.14967329968256304
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI06": {
+        "seed42": {
+          "point_count_minus_detector": 0.06849315068493152,
+          "ci95": [
+            0.037242535030775535,
+            0.1050797954545644
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.07225205479452054,
+          "ci95": [
+            0.04063243903069702,
+            0.10897278883391681
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI08": {
+        "seed42": {
+          "point_count_minus_detector": 0.12482758620689657,
+          "ci95": [
+            0.06289879336233266,
+            0.1909107025777918
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.12827586206896552,
+          "ci95": [
+            0.06807957597353655,
+            0.19440961085215572
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI10": {
+        "seed42": {
+          "point_count_minus_detector": 0.12282758620689653,
+          "ci95": [
+            0.05331876887946178,
+            0.1975810028689443
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.12564137931034486,
+          "ci95": [
+            0.056923314035295075,
+            0.20002352450623895
+          ],
+          "excludes_0": true
+        }
+      }
+    },
+    "LSTMAutoencoder": {
+      "ASI01": {
+        "seed42": {
+          "point_count_minus_detector": 0.14393442622950817,
+          "ci95": [
+            0.09076328648469811,
+            0.20239416573105476
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.13867540983606558,
+          "ci95": [
+            0.08823012480784485,
+            0.19215765357339026
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI02": {
+        "seed42": {
+          "point_count_minus_detector": 0.1280689655172414,
+          "ci95": [
+            0.06967807218119948,
+            0.18820844934298128
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.12202758620689655,
+          "ci95": [
+            0.06738153218033788,
+            0.1779997405660162
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI04": {
+        "seed42": {
+          "point_count_minus_detector": 0.14786206896551723,
+          "ci95": [
+            0.09011562310019613,
+            0.20914945636006174
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.14005517241379312,
+          "ci95": [
+            0.08610769662638393,
+            0.19632203035703044
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI06": {
+        "seed42": {
+          "point_count_minus_detector": 0.14876712328767122,
+          "ci95": [
+            0.10194720960543534,
+            0.19665657097197492
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.14504109589041095,
+          "ci95": [
+            0.10250190304092477,
+            0.19152844593548823
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI08": {
+        "seed42": {
+          "point_count_minus_detector": 0.18675862068965515,
+          "ci95": [
+            0.12077221811755286,
+            0.2571648702752061
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.1763310344827586,
+          "ci95": [
+            0.11377260793694757,
+            0.23868196562854474
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI10": {
+        "seed42": {
+          "point_count_minus_detector": 0.19206896551724137,
+          "ci95": [
+            0.1159690179595434,
+            0.26783746753842375
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.18164137931034482,
+          "ci95": [
+            0.11089162942637215,
+            0.25209573862068896
+          ],
+          "excludes_0": true
+        }
+      }
+    },
+    "DeepClustering": {
+      "ASI01": {
+        "seed42": {
+          "point_count_minus_detector": 0.021901639344262303,
+          "ci95": [
+            -0.009920117787466348,
+            0.05163408101837799
+          ],
+          "excludes_0": false
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.03495081967213114,
+          "ci95": [
+            0.0025621194271644694,
+            0.06551051249458814
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI02": {
+        "seed42": {
+          "point_count_minus_detector": 0.027517241379310352,
+          "ci95": [
+            0.003491079058560468,
+            0.05160675147873132
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.0386344827586207,
+          "ci95": [
+            0.013788887354390019,
+            0.06493551704678314
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI04": {
+        "seed42": {
+          "point_count_minus_detector": 0.03572413793103448,
+          "ci95": [
+            0.014818651356194739,
+            0.058741592847937396
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.048827586206896555,
+          "ci95": [
+            0.02472861546075735,
+            0.07510670046145403
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI06": {
+        "seed42": {
+          "point_count_minus_detector": 0.030082191780821922,
+          "ci95": [
+            0.007796008115190441,
+            0.05595306453568862
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.03973698630136986,
+          "ci95": [
+            0.01792653484467988,
+            0.06399009415979695
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI08": {
+        "seed42": {
+          "point_count_minus_detector": 0.04179310344827587,
+          "ci95": [
+            0.016766582075926764,
+            0.06640395904382022
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.06228965517241379,
+          "ci95": [
+            0.032832385369187575,
+            0.09272166427941116
+          ],
+          "excludes_0": true
+        }
+      },
+      "ASI10": {
+        "seed42": {
+          "point_count_minus_detector": 0.03772413793103446,
+          "ci95": [
+            0.003328106420212691,
+            0.06927442298083294
+          ],
+          "excludes_0": true
+        },
+        "all_seeds": {
+          "point_count_minus_detector": 0.05846896551724138,
+          "ci95": [
+            0.018547059071525807,
+            0.09519503916026967
+          ],
+          "excludes_0": true
+        }
+      }
+    }
+  }
+}

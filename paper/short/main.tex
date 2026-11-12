@@ -4,6 +4,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{graphicx}
 \usepackage{hyperref}
 
 \begin{document}
@@ -19,7 +20,7 @@ bipinrimal314@gmail.com}
 \maketitle
 
 \begin{abstract}
-Behavioural anomaly detectors for AI agents are often evaluated in two ways: by injecting synthetic attack profiles into agent traces, and by computing AUC-ROC on public trace benchmarks. We re-examine our own earlier evaluation and find that the construction of the data decided each answer. First, two constructions of the same four OWASP agentic risk categories disagree. With negatives held out of training, tool misuse (ASI02) scores 0.50--0.51 under our perturbation profiles and 0.82--0.89 on ATBench, an independently constructed benchmark. Memory and context poisoning (ASI06) errs the other way (0.89--0.96 against 0.79--0.89). Second, neither side measures attack behaviour. Our ASI02 profile changes no span, tool or order, so it is undetectable by construction. On ATBench, the raw number of tool calls in a trajectory, with no model at all, scores 0.89--0.94, higher than all three detectors in all six categories. Third, TRAIL has four error-free traces among 148. A detector that scored 0.89 when its four training negatives were also its test negatives scores 0.60 when each is held out, and the 95\% interval on a TRAIL AUC-ROC is about $\pm$0.25. We withdraw two earlier claims. We recommend held-out negatives, a trace-length baseline, an interval on every AUC, and a second construction before any category is called a blind spot.
+Behavioural anomaly detectors for AI agents are often evaluated in two ways: by injecting synthetic attack profiles into agent traces, and by computing AUC-ROC on public trace benchmarks. We re-examine our own earlier evaluation and find that the construction of the data decided each answer. First, two constructions of the same four OWASP agentic risk categories disagree. With negatives held out of training, tool misuse (ASI02) scores 0.50--0.51 under our perturbation profiles and 0.82--0.90 on ATBench, an independently constructed benchmark. Memory and context poisoning (ASI06) errs the other way (0.89--0.96 against 0.79--0.90). Second, neither side measures attack behaviour. Our ASI02 profile changes no span, tool or order, so it gives a behaviour-only detector almost nothing to read. One strength parameter that adds tool calls to it moves the same detectors from 0.50 to 0.82--0.85. On the 500-trajectory configuration of ATBench, the raw number of tool calls in a trajectory, with no model at all, scores 0.89--0.94, above all three detectors in all six categories. Third, TRAIL has four error-free traces among 148. A detector that scored 0.89 when its four training negatives were also its test negatives scores 0.60 when each is held out, and the 95\% interval on a TRAIL AUC-ROC is about $\pm$0.25. We withdraw two earlier claims. We recommend held-out negatives, a trace-length baseline, an interval on every AUC, and a second construction before any category is called a blind spot.
 \end{abstract}
 
 \section{Introduction}
@@ -30,8 +31,8 @@ This paper reports what happened when we checked both shortcuts in our own earli
 
 We make three points.
 \begin{enumerate}
-\item \textbf{Construction decides detectability.} Two constructions of the same OWASP categories disagree by up to 0.39 AUC-ROC per category, in both directions (Section~\ref{sec:construction}).
-\item \textbf{No detector improves on a count.} On ATBench, the number of tool calls alone separates unsafe from safe trajectories at least as well as any detector we trained (Section~\ref{sec:length}).
+\item \textbf{Construction decides detectability.} Two constructions of the same OWASP categories disagree by up to 0.40 AUC-ROC per category, in both directions (Section~\ref{sec:construction}).
+\item \textbf{On ATBench a tool-call count beats the detectors.} The number of tool calls alone scores above all three detectors in all six categories, by 0.04--0.06 over the best one (Section~\ref{sec:length}).
 \item \textbf{TRAIL cannot rank detectors.} With four negatives, a score depends on whether those negatives were in the training set, and the 95\% interval spans about $\pm$0.25 (Section~\ref{sec:trail}).
 \end{enumerate}
 
@@ -44,7 +45,7 @@ These are counterexamples, not a general law. Each one is small and specific. We
 
 \textbf{Detectors.} We use Isolation Forest (IF)~\cite{liu2008isolation} with 200 trees, an LSTM autoencoder (LSTM)~\cite{malhotra2016lstm}, and a deep-clustering detector (DC), a dense autoencoder with $k$-means in its latent space~\cite{xie2024deep}. Each is trained on normal traces only. Every result is a mean over five seeds.
 
-\textbf{Protocol.} Our earlier work trained each detector on all normal traces and then scored those same traces as the negatives. Here the test negatives are never in the training set. For the synthetic data and for ATBench we split the normal traces into five folds, train on four, and test on the fifth fold plus all positives of one category. For TRAIL we leave one error-free trace out at a time. We also report the earlier protocol as ``in-sample''. One script, \texttt{scripts/heldout\_check.py}, produces every number in Tables~\ref{tab:construction}, \ref{tab:trail} and~\ref{tab:atbench}.
+\textbf{Protocol.} Our earlier work trained each detector on all normal traces and then scored those same traces as the negatives. Here the test negatives are never in the training set. For the synthetic data and for ATBench we split the normal traces into five folds, train on four, and test on the fifth fold plus all positives of one category. For TRAIL we leave one error-free trace out at a time. We also report the earlier protocol as ``in-sample''. One script, \texttt{scripts/heldout\_check.py}, produces every number in Tables~\ref{tab:construction}, \ref{tab:trail} and~\ref{tab:atbench}. The neural detectors run on CPU, because their scores depend on the device (Section~\ref{sec:limits}).
 
 \textbf{Count baseline.} As a baseline with no model, we score each trace by its raw number of tool calls. If fewer calls marked the positive class we would reverse the sign. No cell in this paper needed that.
 
@@ -71,30 +72,39 @@ Table~\ref{tab:construction} compares the four categories that both construction
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
 Cat. & Syn. & ATB. & Syn. & ATB. & Syn. & ATB. & Syn. & ATB. \\
 \midrule
-ASI01 & .610 & .842 & .616 & .780 & .595 & .872 & .635 & \textbf{.919} \\
-ASI02 & .503 & .870 & .503 & .819 & .506 & .894 & .531 & \textbf{.941} \\
-ASI06 & .894 & .866 & .959 & .794 & .964 & .886 & .784 & \textbf{.939} \\
-ASI10 & .690 & .763 & .673 & .707 & .713 & .810 & .763 & \textbf{.889} \\
+ASI01 & .610 & .842 & .616 & .780 & .591 & .884 & .635 & \textbf{.919} \\
+ASI02 & .503 & .870 & .503 & .819 & .505 & .902 & .531 & \textbf{.941} \\
+ASI06 & .894 & .866 & .959 & .794 & .965 & .899 & .784 & \textbf{.939} \\
+ASI10 & .690 & .763 & .673 & .707 & .705 & .830 & .763 & \textbf{.889} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{The two constructions disagree in both directions.} Under our profiles, tool misuse (ASI02) sits at chance for all three detectors (0.50--0.51). On ATBench the same detectors score 0.82--0.89 on the same category, a gap of 0.32--0.39. Memory and context poisoning (ASI06) errs the other way: our profiles make it look easier (0.89--0.96) than ATBench does (0.79--0.89). The ASI02 gap is larger than the sampling error. With the number of negatives in one test fold, the Hanley--McNeil~\cite{hanley1982meaning} 95\% interval is 0.35--0.65 for each synthetic ASI02 score, and its lower bound is 0.71 or more for each ATBench ASI02 score.
+\textbf{The two constructions disagree in both directions.} Under our profiles, tool misuse (ASI02) sits at chance for all three detectors (0.50--0.51). On ATBench the same detectors score 0.82--0.90 on the same category, a gap of 0.32--0.40. Memory and context poisoning (ASI06) errs the other way: our profiles make it look easier (0.89--0.96) than ATBench does (0.79--0.90). The ASI02 gap is larger than the sampling error. With the number of negatives in one test fold, the Hanley--McNeil~\cite{hanley1982meaning} 95\% interval is 0.35--0.65 for each synthetic ASI02 score, and its lower bound is 0.71 or more for each ATBench ASI02 score.
 
-\textbf{The ASI02 gap follows from the generator.} Our ASI02 profile does not add, remove or reorder any span, and it does not change any tool name. It only rescales existing numeric span attributes, such as token counts, by a small random factor. The count, scope and sequence features therefore do not change. A behaviour-only detector has almost nothing to see, whatever real tool misuse looks like. The chance-level score measures our definition of the category, not the category. Under the earlier in-sample protocol, adding eight semantic features to the schema left synthetic ASI02 near chance (DC: 0.537 to 0.559; IF: 0.514 to 0.494).
+\textbf{The ASI02 gap follows from the generator.} Our ASI02 profile does not add, remove or reorder any span, and it does not change any tool name. It only rescales existing numeric span attributes, such as token counts, by a small random factor. The count, scope and sequence features therefore do not change. A behaviour-only detector has almost nothing to see, whatever real tool misuse looks like. The chance-level score measures our definition of the category, not the category.
 
-\textbf{What the comparison does not show.} ATBench is also a construction. The disagreement shows that the answer depends on who builds the data. It does not show which construction is closer to attacks in deployment. Our earlier write-up reported a perfect rank inversion over three shared categories. With the category mapping corrected, four categories are shared, and no rank correlation over four items can reach significance (the smallest attainable exact two-sided $p$ is 0.083), so we do not use one. The evidence is the size of the per-category gaps and the known mechanism.
+\textbf{The profile's author chooses the score.} To test this reading, we added one strength parameter $s$ to the ASI02 profile. At $s=0$ the profile is unchanged. At $s>0$ it also inserts $\mathrm{round}(0.5\,s\,n)$ tool calls into a trace of $n$ spans, with tools that the trace does not otherwise use. Figure~\ref{fig:dial} shows the result. The three detectors rise from 0.50 at $s=0$ to 0.82--0.85 at $s=1$. The curve is not smooth: at $s=0.1$ a trace with fewer than ten spans receives no insertion, and DC stays near chance (0.48). Within this one-parameter family, the held-out score runs from chance to 0.82--0.85, and the choice of $s$ is ours. The dial adds tool calls, which our count features read directly, so it shows a response to length and not to misuse as such. The count baseline is above all three detectors at every strength (0.89 at $s=1$).
 
-\section{No Detector Improves on a Count}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/dial.pdf}
+\caption{Held-out AUC-ROC on synthetic ASI02 as one strength parameter of the profile grows (mean of five seeds). Strength 0 is the profile used in Table~\ref{tab:construction}.}
+\label{fig:dial}
+\end{figure}
+
+\textbf{What the comparison does not show.} ATBench is also a construction. The disagreement shows that the answer depends on who builds the data. It does not show which construction is closer to attacks in deployment. Our earlier write-up reported a rank inversion over three shared categories. Four categories are shared once the mapping is corrected, and no rank correlation over four items can reach significance, so we do not use one.
+
+\section{On ATBench a Tool-Call Count Beats the Detectors}
 \label{sec:length}
 
-The last two columns of Table~\ref{tab:construction} give the count baseline. On ATBench it scores 0.89--0.94 and is higher than every detector in every category, including the two categories in Table~\ref{tab:atbench} that have no synthetic profile. The margin over the best detector is 0.05--0.08, which is about the half-width of the intervals, so we do not claim that the count is reliably better. The supported claim is that no detector improves on it.
+The last two columns of Table~\ref{tab:construction} give the count baseline. On ATBench it scores 0.89--0.94 and is higher than every detector in every category, including the two categories in Table~\ref{tab:atbench} that have no synthetic profile. The margin over the best detector is 0.04--0.06. We tested the difference with a paired bootstrap: 2,000 resamples of the positive and the safe trajectories, with the count and the detector scored on the same resample. Averaged over the five seeds, the 95\% interval of count minus detector excludes zero in all 18 cells (six categories, three detectors). For a single seed it excludes zero in 17 of 18; the exception is DC on ASI01. The intervals are not corrected for 18 comparisons, and they resample the test trajectories only, not the training of the detectors. The direction of the count (more calls means unsafe) was fixed before resampling, from all the data. This is one benchmark configuration.
 
-The same cue is visible in the raw data, before any of our code runs. There it appears as the message count, which is the same quantity as our tool-call count up to scale. A safe trajectory in the 500-trajectory configuration has a median of 8 messages, and an unsafe one has a median of 10. The message count alone separates the two classes with an AUC-ROC of 0.924. Of the 250 unsafe trajectories, 226 have ten or more messages, and of the 250 safe ones, 213 have eight or fewer. The number of tools offered to the agent does not separate them (0.509).
+The same cue is visible in the raw data, before any of our code runs. There it appears as the message count; each tool call adds one agent message and one environment message. A safe trajectory in the 500-trajectory configuration has a median of 8 messages, and an unsafe one has a median of 10. The message count alone separates the two classes with an AUC-ROC of 0.924. Of the 250 unsafe trajectories, 226 have ten or more messages, and of the 250 safe ones, 213 have eight or fewer. The number of tools offered to the agent does not separate them (0.509).
 
 A single feature therefore does as well on ATBench as a trained detector. We did not remove the count features and retrain, so we cannot say how much of each detector's score comes from length. The ATBench column of Table~\ref{tab:construction} does not show that tool misuse is detectable from behaviour. It is consistent with a simpler reading: unsafe trajectories in this construction are longer. Both constructions decided the answer: ours by changing nothing a feature can read, and ATBench by a difference in length. We did not test the 1,000-trajectory configuration, and we make no claim about why the lengths differ.
 
-Under our own profiles the count baseline is also competitive. It is above all three detectors for ASI01 and ASI10, and below them only for ASI06, where the profile duplicates spans.
+Under our own profiles the count baseline is also competitive. Its point estimate is above all three detectors for ASI01, ASI02 and ASI10, and below them only for ASI06, where the profile duplicates spans.
 
 \section{TRAIL Cannot Rank Detectors}
 \label{sec:trail}
@@ -118,20 +128,11 @@ Count (no model) & \multicolumn{2}{c}{0.569} & \\
 \end{tabular}
 \end{table}
 
-\textbf{The training set decided the ranking.} Under the in-sample protocol, DC scores 0.893 and looks far better than IF (0.577). When each negative is held out, DC scores 0.598 and is the lowest of the three (Table~\ref{tab:trail}). A likely cause is that a model fitted to four traces places those four traces close to its own cluster centres, so they receive low anomaly scores for a reason that has nothing to do with errors. We did not test this cause. IF and LSTM do not show the same drop. The earlier ranking was a property of the protocol.
+\textbf{The training set decided the ranking.} Under the in-sample protocol, DC scores 0.893 and looks far better than IF (0.577). When each negative is held out, DC scores 0.598, the lowest point estimate of the three (Table~\ref{tab:trail}). A likely cause is that a model fitted to four traces places those four traces close to its own cluster centres, so they receive low anomaly scores for a reason that has nothing to do with errors. We did not test this cause. IF and LSTM do not show the same drop. The earlier ranking was a property of the protocol.
 
 \textbf{No ordering is supported.} The three held-out scores lie between 0.60 and 0.68, and each interval is about $\pm$0.25 wide. Our earlier work reported that an IF trained on TRACE~\cite{pan2024trace} (0.614) or on ATBench (0.774) scored higher on TRAIL than an IF trained on TRAIL. Both transferred scores lie inside the interval around the held-out in-domain score (0.41--0.90). The pattern is not evidence of anything.
 
-\textbf{Seed variation hides the problem.} The seed standard deviations we reported earlier were small (0.007--0.050). They measure the randomness of model training. They do not measure the sampling of the four negatives, which is the dominant source of error. A table of means and seed deviations therefore looks precise when it is not.
-
 \textbf{The cause is few negatives, not prevalence as such.} AUC-ROC does not depend on class balance in principle~\cite{hanley1982meaning, mcdermott2024closer}. The problem is that four negative traces make the statistic too noisy to compare anything. AUC-PR does not help: IF's in-sample AUC-PR is 0.982, close to what any scorer achieves when 97\% of traces are positive~\cite{saito2015precision}.
-
-\section{One Synthetic Prediction That Held}
-\label{sec:hydra}
-
-Our earlier work made a second synthetic prediction of the same kind. It modelled distributed model distillation: extraction traffic spread over many accounts, so that each account looks normal. Under the in-sample protocol all three detectors stayed near chance on this profile (0.538--0.540), and a single-account extraction profile was easy to detect (0.936--0.999). A later public disclosure~\cite{anthropic2026distillation} described distillation campaigns spread across many accounts, and detection tools built for coordinated activity across accounts. This agrees with the prediction in kind. It is not a measurement, because no labelled benchmark of distributed extraction was available to us.
-
-The ASI02 prediction and this one came from the same pipeline. Both were near-chance scores on profiles we defined, and both had a plausible story attached. One agreed with later evidence and one did not. Nothing inside the synthetic experiment separated them.
 
 \section{Related Work}
 
@@ -150,19 +151,17 @@ The ASI02 prediction and this one came from the same pipeline. Both were near-ch
 
 \textbf{Single constructions.} Each side of Table~\ref{tab:construction} is one construction: one profile set and one benchmark configuration. Only four categories are shared, and ASI02 has only 29 positive trajectories in ATBench. Other generators or benchmarks may agree with each other.
 
-\textbf{Synthetic positives resemble training traces.} Each synthetic positive is an edited copy of a base trace, and that base trace is usually in the training folds. This can lower the synthetic scores, most of all for ASI02, whose edit is nearly an identity. Folds grouped by base trace would remove the effect. We did not run them.
+\textbf{Synthetic positives resemble training traces.} Each synthetic positive is an edited copy of a base trace, and that base trace is usually in the training folds. We repeated the synthetic setting with each positive scored only by a model that did not train on its base trace. Synthetic ASI02 stays at 0.51 for all three detectors and moves by at most 0.006. The largest change in any cell is 0.04 (ASI01), with about six positives per fold.
 
 \textbf{Splits and normalisation.} Our folds are random, not task-disjoint, and Zavrak shows that this choice alone can inflate AUROC~\cite{zavrak2026content}. The z-score normaliser is fitted on all traces of a dataset, including the test traces.
 
 \textbf{Intervals.} The Hanley--McNeil interval assumes one scorer. Our held-out scores average over folds with different models, so the intervals are approximate.
 
-\textbf{Reproduction.} With the earlier in-sample protocol, this run reproduces our earlier IF and LSTM numbers to three decimals. The DC numbers on ATBench come out 0.02--0.04 lower than before (for example, ASI02 0.888 against 0.910). The run is deterministic in our environment (PyTorch 2.15, CPU), so we attribute the difference to software or hardware, and we report only this run. The distillation numbers in Section~\ref{sec:hydra} and the semantic-feature numbers in Section~\ref{sec:construction} come from the earlier in-sample run and were not repeated with held-out negatives.
-
-\textbf{Lost insider-threat pipeline.} Our earlier work also transferred detectors from the CMU-CERT insider-threat data. The feature-loading code for that data was never committed and is lost, so those numbers cannot be rerun. We do not use them here.
+\textbf{Reproduction and device.} With the earlier in-sample protocol, this run reproduces our earlier IF and LSTM numbers to three decimals. DC differs on an Apple GPU. For in-sample ATBench ASI02 it scores 0.916 on CPU (on two machines, with PyTorch 2.13 and 2.15), 0.910 on a CUDA GPU, which is our earlier published value, and 0.888 on an Apple GPU. CPU and CUDA differ by 0.012 or less over the three categories we checked. We run the neural detectors on CPU (\texttt{scripts/device\_check.py}). A difference of 0.03 between devices is as large as some differences between detectors in this paper.
 
 \section{Conclusion}
 
-How the data was built decided which attacks looked detectable in our evaluation. Our own profile made tool misuse invisible, a length difference made it easy on ATBench, and four negatives made any ranking on TRAIL depend on the protocol. Four practices follow. Hold the test negatives out of training. Report a trace-length baseline next to every detector. Report an interval for every AUC, and count the negatives first. Check a synthetic per-category score against a construction built by someone else before calling a category a blind spot.
+How the data was built decided which attacks looked detectable in our evaluation. Our own profile made tool misuse invisible until one parameter made it visible, a length difference made it easy on ATBench, and four negatives made any ranking on TRAIL depend on the protocol. Four practices follow. Hold the test negatives out of training. Report a trace-length baseline next to every detector. Report an interval for every AUC, and count the negatives first. Check a synthetic per-category score against a construction built by someone else before calling a category a blind spot.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
@@ -172,7 +171,7 @@ How the data was built decided which attacks looked detectable in our evaluation
 \subsection{Full ATBench Results}
 \label{app:atbench}
 
-Table~\ref{tab:atbench} gives held-out per-category AUC-ROC on ATBench for all six mapped categories. ASI04 and ASI08 have no synthetic profile. Holding the negatives out changes an ATBench score by at most 0.009, and a synthetic score by at most 0.044.
+Table~\ref{tab:atbench} gives held-out per-category AUC-ROC on ATBench for all six mapped categories. ASI04 and ASI08 have no synthetic profile. Holding the negatives out changes an ATBench score by at most 0.014, and a synthetic score by at most 0.039.
 
 \begin{table}[h]
 \caption{ATBench per-category AUC-ROC with held-out negatives (UBFS-20). $n$: positive trajectories.}
@@ -187,7 +186,7 @@ Table~\ref{tab:atbench} gives held-out per-category AUC-ROC on ATBench for all s
 $n$ & 61 & 29 & 29 & 73 & 29 & 29 \\
 IF & .842 & .870 & .845 & .866 & .775 & .763 \\
 LSTM & .780 & .819 & .797 & .794 & .727 & .707 \\
-DC & .872 & .894 & .878 & .886 & .824 & .810 \\
+DC & .884 & .902 & .888 & .899 & .841 & .830 \\
 Count & \textbf{.919} & \textbf{.941} & \textbf{.937} & \textbf{.939} & \textbf{.903} & \textbf{.889} \\
 \bottomrule
 \end{tabular}

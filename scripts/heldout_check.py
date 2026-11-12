@@ -33,7 +33,9 @@ from src.features.ubfs_schema import ubfs_feature_names  # noqa: E402
 MODELS = {
     "IsolationForest": (IsolationForestDetector, {"n_estimators": 200, "contamination": "auto"}),
     "LSTMAutoencoder": (LSTMAutoencoderDetector, {"epochs": 30, "batch_size": 16, "device": "cpu", "verbose": False}),
-    "DeepClustering": (DeepClusteringDetector, {"pretrain_epochs": 30, "batch_size": 16}),
+    # device pinned: "auto" picks cuda or mps, and the scores then differ by up to 0.04 between machines;
+    # cpu gives the same scores on macOS (torch 2.15) and Linux (torch 2.13).
+    "DeepClustering": (DeepClusteringDetector, {"pretrain_epochs": 30, "batch_size": 16, "device": "cpu"}),
 }
 COUNT_COL = ubfs_feature_names().index("primary_event_count")
 OUT = ROOT / "results" / "tables" / "heldout_check.json"
@@ -206,6 +208,7 @@ if __name__ == "__main__":
     syn, tr = run_synthetic(), run_trail()
     json.dump({"synthetic_exp3": syn, "atbench_exp12": atb, "trail_exp1": tr,
                "atbench_raw_length": raw_atbench_length(),
+               "device": "cpu for LSTMAutoencoder and DeepClustering",
                "trivial_feature": "primary_event_count (tool_call_count), raw, before z-score",
                "published_check": {"exp3": p3, "exp12": p12, "exp1": p1}}, open(OUT, "w"), indent=2)
     table("Synthetic (Exp 3), 5-fold over normals, mean over 5 seeds", syn, p3)

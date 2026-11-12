@@ -1,0 +1,323 @@
+{
+  "IsolationForest": {
+    "ASI01": {
+      "held_out": 0.6099218390804598,
+      "held_out_grouped": 0.6407060440198371,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.6434329501915709,
+        0.6219003831417624,
+        0.6390421455938698,
+        0.5647739463601532,
+        0.5804597701149425
+      ],
+      "held_out_grouped_per_seed": [
+        0.6645498084291187,
+        0.6363087027914613,
+        0.7110971786833856,
+        0.5935504469987228,
+        0.598024083196497
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI02": {
+      "held_out": 0.5031624521072797,
+      "held_out_grouped": 0.5093611185749117,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.5184099616858238,
+        0.5168659003831417,
+        0.4586934865900383,
+        0.5191455938697318,
+        0.5026973180076628
+      ],
+      "held_out_grouped_per_seed": [
+        0.5242241379310345,
+        0.5396113847837987,
+        0.4313146240732447,
+        0.5142884510125889,
+        0.5373669950738916
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI06": {
+      "held_out": 0.893912643678161,
+      "held_out_grouped": 0.8971477650063857,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.909639846743295,
+        0.9065134099616857,
+        0.8978390804597701,
+        0.8565517241379309,
+        0.8990191570881226
+      ],
+      "held_out_grouped_per_seed": [
+        0.8924603174603174,
+        0.9208856960408685,
+        0.8909067688378034,
+        0.8732101806239736,
+        0.9082758620689655
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "EXCESSIVE_AGENCY": {
+      "held_out": 0.821707491082045,
+      "held_out_grouped": 0.8284789272030653,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.8298057867617915,
+        0.8395005945303209,
+        0.8131430836305984,
+        0.7970511296076099,
+        0.8290368608799048
+      ],
+      "held_out_grouped_per_seed": [
+        0.8222796934865901,
+        0.8357766830870279,
+        0.8367279693486591,
+        0.8188111658456485,
+        0.8287991242474002
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI10": {
+      "held_out": 0.6896504161712247,
+      "held_out_grouped": 0.6982496259806604,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.7137851763773286,
+        0.7111216805390408,
+        0.6502893380895759,
+        0.6980737217598098,
+        0.6749821640903686
+      ],
+      "held_out_grouped_per_seed": [
+        0.7335550082101806,
+        0.7285878489326765,
+        0.6374904214559388,
+        0.717508848750228,
+        0.6741060025542784
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    }
+  },
+  "LSTMAutoencoder": {
+    "ASI01": {
+      "held_out": 0.6164551724137931,
+      "held_out_grouped": 0.6430360617670964,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.6250268199233716,
+        0.6261149425287357,
+        0.6336015325670498,
+        0.607992337164751,
+        0.5895402298850575
+      ],
+      "held_out_grouped_per_seed": [
+        0.6441551724137932,
+        0.6293653530377669,
+        0.6961598746081504,
+        0.6185595694216384,
+        0.6269403393541324
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI02": {
+      "held_out": 0.5027724137931034,
+      "held_out_grouped": 0.5075373637856396,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.5043295019157089,
+        0.5276551724137931,
+        0.48288505747126437,
+        0.49848659003831425,
+        0.5005057471264369
+      ],
+      "held_out_grouped_per_seed": [
+        0.4932662835249042,
+        0.5488341543513957,
+        0.45826591033487585,
+        0.5127832512315271,
+        0.5245372194854954
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI06": {
+      "held_out": 0.9594942528735633,
+      "held_out_grouped": 0.9591796022623609,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.9533946360153257,
+        0.9679003831417624,
+        0.9610804597701149,
+        0.9492950191570882,
+        0.965800766283525
+      ],
+      "held_out_grouped_per_seed": [
+        0.9422112753147236,
+        0.9757356321839079,
+        0.9618071519795658,
+        0.9536535303776683,
+        0.9624904214559388
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "EXCESSIVE_AGENCY": {
+      "held_out": 0.8055933412604043,
+      "held_out_grouped": 0.805856814449918,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.8047166072136346,
+        0.8248592944906857,
+        0.8048434403487912,
+        0.7941022592152199,
+        0.79944510503369
+      ],
+      "held_out_grouped_per_seed": [
+        0.8046551724137931,
+        0.8145101258894363,
+        0.8141570881226053,
+        0.8067717569786534,
+        0.7891899288451012
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI10": {
+      "held_out": 0.6734157748711851,
+      "held_out_grouped": 0.6785419996351031,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.6730638129211256,
+        0.7100277447483154,
+        0.6223464130003963,
+        0.68995640110979,
+        0.6716845025762981
+      ],
+      "held_out_grouped_per_seed": [
+        0.6887164750957855,
+        0.7248152709359605,
+        0.6126710454296662,
+        0.7048852399197226,
+        0.6616219667943806
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    }
+  },
+  "DeepClustering": {
+    "ASI01": {
+      "held_out": 0.5912750957854406,
+      "held_out_grouped": 0.630371496574945,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.5950804597701149,
+        0.6181226053639847,
+        0.6264061302681991,
+        0.5870421455938697,
+        0.5297241379310346
+      ],
+      "held_out_grouped_per_seed": [
+        0.646227969348659,
+        0.6583891625615764,
+        0.6764890282131661,
+        0.5629051268016785,
+        0.6078461959496442
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI02": {
+      "held_out": 0.5052306513409961,
+      "held_out_grouped": 0.507519634771359,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.5249655172413792,
+        0.5210191570881226,
+        0.43984291187739466,
+        0.5507011494252874,
+        0.48962452107279686
+      ],
+      "held_out_grouped_per_seed": [
+        0.5031513409961685,
+        0.5306020799124248,
+        0.43921530576702983,
+        0.5711330049261084,
+        0.493496442255063
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI06": {
+      "held_out": 0.9648812260536399,
+      "held_out_grouped": 0.9623133369823025,
+      "n_pos_grouped": 6.0,
+      "held_out_per_seed": [
+        0.9555325670498085,
+        0.9743218390804598,
+        0.9495708812260537,
+        0.9680383141762452,
+        0.9769425287356321
+      ],
+      "held_out_grouped_per_seed": [
+        0.931288998357964,
+        0.9751641123882504,
+        0.9587356321839081,
+        0.9717515051997812,
+        0.9746264367816092
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "EXCESSIVE_AGENCY": {
+      "held_out": 0.8288038049940546,
+      "held_out_grouped": 0.8219453749315818,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.8093063812921126,
+        0.8321046373365041,
+        0.8119302417756638,
+        0.843313515655965,
+        0.8473642489100278
+      ],
+      "held_out_grouped_per_seed": [
+        0.804455938697318,
+        0.8291899288451013,
+        0.8130574712643679,
+        0.8283481116584565,
+        0.8346754241926657
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    },
+    "ASI10": {
+      "held_out": 0.7046769718588981,
+      "held_out_grouped": 0.7164053274949826,
+      "n_pos_grouped": 5.8,
+      "held_out_per_seed": [
+        0.6979548156956005,
+        0.7518985334918746,
+        0.6840031708283789,
+        0.7276575505350773,
+        0.6618707887435592
+      ],
+      "held_out_grouped_per_seed": [
+        0.7060618500273673,
+        0.7941871921182266,
+        0.6666091954022988,
+        0.7481696770662288,
+        0.6669987228607918
+      ],
+      "caveat": "about 6 positives per fold and 30 per seed; compare the gap with the per-seed spread",
+      "held_out_matches_heldout_check_json": true
+    }
+  }
+}
