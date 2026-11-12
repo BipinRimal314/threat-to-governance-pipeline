@@ -155,7 +155,7 @@ Count (no model) & \multicolumn{2}{c}{0.569} & \\
 
 \textbf{Splits and normalisation.} Our folds are random, not task-disjoint, and Zavrak shows that this choice alone can inflate AUROC~\cite{zavrak2026content}. The z-score normaliser is fitted on all traces of a dataset, including the test traces.
 
-\textbf{Intervals.} The Hanley--McNeil interval assumes one scorer. Our held-out scores average over folds with different models, so the intervals are approximate.
+\textbf{Intervals.} We use the Hanley--McNeil standard error~\cite{hanley1982meaning}, as coded in \texttt{scripts/heldout\_check.py}. It assumes one scorer. Our held-out scores average over folds with different models, so the intervals are approximate.
 
 \textbf{Reproduction and device.} With the earlier in-sample protocol, this run reproduces our earlier IF and LSTM numbers to three decimals. DC differs on an Apple GPU. For in-sample ATBench ASI02 it scores 0.916 on CPU (on two machines, with PyTorch 2.13 and 2.15), 0.910 on a CUDA GPU, which is our earlier published value, and 0.888 on an Apple GPU. CPU and CUDA differ by 0.012 or less over the three categories we checked. We run the neural detectors on CPU (\texttt{scripts/device\_check.py}). A difference of 0.03 between devices is as large as some differences between detectors in this paper.
 
@@ -191,14 +191,5 @@ Count & \textbf{.919} & \textbf{.941} & \textbf{.937} & \textbf{.939} & \textbf{
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Interval Method}
-
-For an AUC $A$ estimated from $n_p$ positives and $n_n$ negatives, Hanley and McNeil~\cite{hanley1982meaning} give
-\begin{multline*}
-\mathrm{SE}^2 = \bigl[A(1-A) + (n_p-1)(Q_1 - A^2) \\
-+ (n_n-1)(Q_2 - A^2)\bigr] / (n_p\, n_n),
-\end{multline*}
-with $Q_1 = A/(2-A)$ and $Q_2 = 2A^2/(1+A)$. The 95\% interval is $A \pm 1.96\,\mathrm{SE}$. With $n_n = 4$, each negative takes part in a quarter of all positive--negative pairs, so the interval stays wide however many positives there are.
 
 \end{document}
